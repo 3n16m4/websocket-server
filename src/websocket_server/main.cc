@@ -1,3 +1,5 @@
+#include "websocket_server/asiofwd.hh"
+
 #include <boost/asio/io_context.hpp>
 
 #include <iostream>
@@ -5,19 +7,20 @@
 
 namespace asio = boost::asio;
 
-struct CLI
+struct CommandLineInterface
 {
-    void parse(int argc, char* argv[])
+    void parse(int _argc, char* _argv[])
     {
-        for (std::size_t i = 0; i < argc; ++i) {
-            std::string_view const arg{argv[i]};
+        std::cout << "Arguments:\n";
+        for (std::size_t i = 0; i < _argc; ++i) {
+            std::string_view const arg{_argv[i]};
             std::cout << arg << '\n';
         }
     }
 };
 
 ///
-///    muttp:
+///    websocket-server:
 ///        -   No REST API, because HTTP Polling is not efficient.
 ///            -   HTTP Polling is slow, because the payload in each HTTP
 ///                Request is quite huge, compared to a simple WebSocket.
@@ -26,9 +29,10 @@ struct CLI
 ///            HTTP Requests.
 ///        -   Fully asynchronous and multi-threaded.
 ///
+
 int main(int argc, char* argv[])
 {
-    CLI cli;
+    CommandLineInterface cli;
     try {
         cli.parse(argc, argv);
     } catch (std::exception const& e) {
