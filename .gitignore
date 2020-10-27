@@ -1,32 +1,29 @@
-# Prerequisites
-*.d
+#CLion specific files
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/deployment.xml
+.idea/**/dictionaries
+.idea/**/shelf
+.idea/**/contentModel.xml
+.idea/**/other.xml
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+#Visual Studio Code specific files
+.vscode/
+compile_commands.json
 
-# Precompiled Headers
-*.gch
-*.pch
+#CMake build directories
+build*/
+cmake-build-*/
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
+#Filesystem
+.DS_Store
+*.swp
 
-# Fortran module files
-*.mod
-*.smod
+#Doxygen output directories
+docs/html/
+docs/*.db
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
+#Python specific files
+venv/
+*.pyc
