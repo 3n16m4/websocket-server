@@ -5,16 +5,22 @@
 #include <iostream>
 #include <string_view>
 
-namespace asio = boost::asio;
-
 struct CommandLineInterface
 {
+    /// The IP Address the server will listen to.
+    std::string_view ip;
+    /// The Port the server will listen to.
+    std::uint16_t port;
+
     void parse(int _argc, char* _argv[])
     {
-        std::cout << "Arguments:\n";
+        /// <address> <port> <threads>
+        if (_argc != 4) {
+            throw std::invalid_argument("Invalid arguments.\nUsage: ./websocket_server <address> <port> <threads>");
+        }
         for (std::size_t i = 0; i < _argc; ++i) {
             std::string_view const arg{_argv[i]};
-            std::cout << arg << '\n';
+            
         }
     }
 };
