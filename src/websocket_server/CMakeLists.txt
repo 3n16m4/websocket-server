@@ -3,6 +3,8 @@ find_path(BOOST_BEAST_INCLUDE_DIRS "boost/beast.hpp")
 
 set(SRC_FILES
     main.cc
+    Listener.hh
+    Listener.cc
 )
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
