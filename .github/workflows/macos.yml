@@ -1,0 +1,36 @@
+name: MacOS
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.CI_PAT }}
+          submodules: true
+
+      - name: "Install dependencies"
+        env:
+          VCPKGRESPONSEFILE: ${{ github.workspace }}/response_file.txt
+          VCPKG_DEFAULT_TRIPLET: x64-osx
+        run: |
+          set -ex
+          vcpkg --triplet $VCPKG_DEFAULT_TRIPLET install @$VCPKGRESPONSEFILE --clean-after-build
+
+      - name: "create build directory"
+        run: mkdir build
+
+      - name: "Generate build files"
+        env:
+          VCPKG_DEFAULT_TRIPLET: x64-osx
+        run: cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE="/usr/local/share/vcpkg/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=$VCPKG_DEFAULT_TRIPLET -B build .
+      - name: "Build"
+        run: cmake --build build/
