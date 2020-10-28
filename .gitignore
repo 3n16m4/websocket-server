@@ -12,6 +12,9 @@
 .vscode/
 compile_commands.json
 
+#Visual Studio specific files
+.vs/
+
 #CMake build directories
 build*/
 cmake-build-*/

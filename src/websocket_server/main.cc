@@ -4,41 +4,43 @@
 
 #include <iostream>
 #include <string_view>
+#include <thread>
 
 struct CommandLineInterface
 {
     /// The IP Address the server will listen to.
     std::string_view ip;
     /// The Port the server will listen to.
-    std::uint16_t port;
+    std::string_view port;
+    /// The amount of threads the server will utilize.
+    std::uint32_t threads;
 
     void parse(int _argc, char* _argv[])
     {
-        /// <address> <port> <threads>
+        /// <app> <address> <port> <threads>
         if (_argc != 4) {
-            throw std::invalid_argument("Invalid arguments.\nUsage: ./websocket_server <address> <port> <threads>");
+            throw std::invalid_argument(
+                "Invalid arguments.\nUsage: ./websocket_server <address> "
+                "<port> <threads>.\nExample: ./websocket_server 127.0.0.1 8080 "
+                "8\nYou may also set <threads> to 0 to enable full utilization "
+                "of the hardware threads.\n");
         }
-        for (std::size_t i = 0; i < _argc; ++i) {
-            std::string_view const arg{_argv[i]};
-            
+        ip = _argv[1];
+        port = _argv[2];
+        threads = static_cast<decltype(threads)>(std::atoi(_argv[3]));
+
+        if (threads == 0) {
+            threads = std::thread::hardware_concurrency();
         }
+
+        std::cout << "Arguments: " << ip << " " << port << " " << threads
+                  << '\n';
     }
 };
 
-///
-///    websocket-server:
-///        -   No REST API, because HTTP Polling is not efficient.
-///            -   HTTP Polling is slow, because the payload in each HTTP
-///                Request is quite huge, compared to a simple WebSocket.
-///        -   Instead, we'll implement a simple WebSocket Server.
-///        -   The WebSockets are persistent and much faster and efficient than
-///            HTTP Requests.
-///        -   Fully asynchronous and multi-threaded.
-///
-
-/// \brief Example for Doxygen.
-/// \param argc test
-/// \param argv test2
+/// \brief The main function.
+/// \param argc Number of arguments.
+/// \param argv The arguments.
 int main(int argc, char* argv[])
 {
     CommandLineInterface cli;
@@ -49,7 +51,7 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    asio::io_context io{1};
+    asio::io_context io{static_cast<int>(cli.threads)};
 
     io.run();
     return 0;

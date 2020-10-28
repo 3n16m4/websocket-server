@@ -1,0 +1,31 @@
+BasedOnStyle: LLVM
+ColumnLimit: 80
+IndentWidth: 4
+ConstructorInitializerIndentWidth: 4
+ContinuationIndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ObjCBlockIndentWidth: 4
+SortIncludes: false
+PointerAlignment: Left
+AlwaysBreakTemplateDeclarations: Yes
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortFunctionsOnASingleLine: None
+AllowAllArgumentsOnNextLine: true
+AllowAllConstructorInitializersOnNextLine: true
+AllowAllParametersOfDeclarationOnNextLine: true
+BreakConstructorInitializers: BeforeComma
+KeepEmptyLinesAtTheStartOfBlocks: false
+NamespaceIndentation: None
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterEnum: true
+  AfterClass: true
+  AfterStruct: true
+  AfterFunction: true
+BreakInheritanceList: AfterColon
+SpaceBeforeCtorInitializerColon: true
+BreakBeforeInheritanceComma: false
+BreakConstructorInitializersBeforeComma: false
