@@ -1,0 +1,41 @@
+name: Ubuntu
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  Linux:
+    name: build-linux
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.CI_PAT }}
+          submodules: true
+
+      - name: "Install dependencies"
+        env:
+          VCPKGRESPONSEFILE: ${{ github.workspace }}/response_file.txt
+          VCPKG_DEFAULT_TRIPLET: x64-linux
+        run: |
+          set -ex
+          vcpkg --triplet $VCPKG_DEFAULT_TRIPLET install @$VCPKGRESPONSEFILE --clean-after-build
+
+      - name: "create build directory"
+        run: mkdir build
+
+      - name: "Generate build files"
+        env:
+          VCPKG_DEFAULT_TRIPLET: x64-linux
+        run: cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=clang++-10 \
+                   -DCMAKE_TOOLCHAIN_FILE="/usr/local/share/vcpkg/scripts/buildsystems/vcpkg.cmake" \
+                   -DVCPKG_TARGET_TRIPLET=$VCPKG_DEFAULT_TRIPLET \
+                   -B build .
+      - name: "Build"
+        run: cmake --build build/

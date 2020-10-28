@@ -36,6 +36,9 @@ struct CommandLineInterface
 ///        -   Fully asynchronous and multi-threaded.
 ///
 
+/// \brief Example for Doxygen.
+/// \param argc test
+/// \param argv test2
 int main(int argc, char* argv[])
 {
     CommandLineInterface cli;

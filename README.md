@@ -1,6 +1,9 @@
 # websocket-server
 A fully asynchronous, multi-threaded, lightweight WebSocket server written in C++ with Boost.Beast.
 
+[![Ubuntu](https://github.com/3n16m4/websocket-server/workflows/Ubuntu/badge.svg)](https://github.com/3n16m4/websocket-server/actions?query=workflow%3AUbuntu)
+[![Windows](https://github.com/3n16m4/websocket-server/workflows/Windows/badge.svg)](https://github.com/3n16m4/websocket-server/actions?query=workflow%3AWindows)
+[![OS/X](https://github.com/3n16m4/websocket-server/workflows/MacOS/badge.svg)](https://github.com/3n16m4/websocket-server/actions?query=workflow%3AMacOS)
 [![C++17](https://img.shields.io/badge/standard-C%2B%2B%2017-blue.svg?logo=C%2B%2B)](https://isocpp.org/)
 
 ## Supported Platforms
