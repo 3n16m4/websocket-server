@@ -3,8 +3,15 @@ find_path(BOOST_BEAST_INCLUDE_DIRS "boost/beast.hpp")
 
 set(SRC_FILES
     main.cc
-    Listener.hh
-    Listener.cc
+    SharedState.hh
+    TCPListener.hh
+    TCPListener.cc
+    WebsocketSession.hh
+    WebsocketSession.cc
+    WebsocketSessionPlain.hh
+    WebsocketSessionPlain.cc
+    WebsocketSessionSSL.hh
+    WebsocketSessionSSL.cc
 )
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
