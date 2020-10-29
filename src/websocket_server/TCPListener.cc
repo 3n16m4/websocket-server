@@ -1,17 +1,17 @@
-#include "websocket_server/Listener.hh"
+#include "websocket_server/TCPListener.hh"
 
 #include <boost/asio/strand.hpp>
 
 using namespace amadeus;
 
-Listener::Listener(asio::io_context& _io, tcp::endpoint _endpoint)
+TCPListener::TCPListener(asio::io_context& _io, tcp::endpoint _endpoint)
     : io_(_io)
     , acceptor_(asio::make_strand(_io))
     , endpoint_(std::move(_endpoint))
 {
 }
 
-void Listener::run()
+void TCPListener::run()
 {
     // Open the acceptor, reuse same address, bind server address and start
     // listening for new connections.
@@ -27,7 +27,8 @@ void Listener::run()
         [this](auto&& ec, auto&& socket) { onAccept(ec, std::move(socket)); });
 }
 
-void Listener::onAccept(beast::error_code const& _error, tcp::socket&& _socket)
+void TCPListener::onAccept(beast::error_code const& _error,
+                           tcp::socket&& _socket)
 {
     if (_error) {
         /// TODO: Handle error properly.

@@ -7,7 +7,13 @@
 #include <boost/beast/core/error.hpp>
 
 namespace amadeus {
-class Listener
+/// \brief This class is responsible for accepting incoming connections. It is
+/// important to note, that this class does not 'manage' any newly created
+/// connection by any means. In fact, the connection itself is responsible for
+/// its own lifetime management. This is done by creating shared pointers for
+/// each connection and making the connection itself inherit from
+/// enable_shared_from_this.
+class TCPListener
 {
   private:
     /// A reference to the main IO-Context.
@@ -24,7 +30,7 @@ class Listener
     /// \brief Constructor.
     /// \param _io A reference to the main IO-Context.
     /// \param _endpoint The endpoint to which the tcp acceptor will listen to.
-    Listener(asio::io_context& _io, tcp::endpoint _endpoint);
+    TCPListener(asio::io_context& _io, tcp::endpoint _endpoint);
 
     /// \brief Starts the listener and accepting incoming connections.
     /// \throw Any exception thrown by boost.

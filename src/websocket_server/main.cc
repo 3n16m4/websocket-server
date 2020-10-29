@@ -1,4 +1,4 @@
-#include "websocket_server/Listener.hh"
+#include "websocket_server/TCPListener.hh"
 
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/signal_set.hpp>
@@ -10,6 +10,7 @@
 
 using namespace amadeus;
 
+/// \brief A simple CLI for parsing the necessary options for the TCP Listener.
 struct CommandLineInterface
 {
     /// The IP Address the server will listen to.
@@ -21,7 +22,7 @@ struct CommandLineInterface
 
     void parse(int _argc, char* _argv[])
     {
-        /// ./websocket_server <address> <port> <threads>
+        // ./websocket_server <address> <port> <threads>
         if (_argc != 4) {
             throw std::invalid_argument(
                 "Invalid arguments.\nUsage: ./websocket_server <address> "
@@ -60,8 +61,8 @@ int main(int argc, char* argv[])
     // The main io_context shared between all I/O operations and threads.
     asio::io_context io{static_cast<int>(cli.threads)};
 
-    // Create and launch the listener.
-    Listener listener{io, tcp::endpoint{cli.ip, cli.port}};
+    // Create and launch the TCP listener.
+    TCPListener listener{io, tcp::endpoint{cli.ip, cli.port}};
     try {
         listener.run();
     } catch (boost::system::system_error const& e) {
