@@ -3,14 +3,23 @@
 
 #include <boost/asio/ts/netfwd.hpp>
 
-/// Forward declarations.
+/// Forward declarations
 namespace boost {
 namespace beast {
+namespace http {
 }
+namespace websocket {
+}
+} // namespace beast
 } // namespace boost
 
+/// Boost/Asio
 namespace asio = boost::asio;
-namespace beast = boost::beast;
 using tcp = asio::ip::tcp;
+
+// Boost/Beast
+namespace beast = boost::beast;
+namespace http = boost::beast::http;
+namespace websocket = boost::beast::websocket;
 
 #endif // !WEBSOCKET_SERVER_ASIOFWD_HH
