@@ -91,6 +91,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 add_subdirectory(src/websocket_server)
 
+set(ENABLE_TESTING OFF)
+
 if(ENABLE_TESTING)
     enable_testing()
     message("Building Tests.")

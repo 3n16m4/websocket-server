@@ -1,6 +1,6 @@
 function(enable_doxygen)
   find_package(Doxygen REQUIRED dot)
-  option(ENABLE_DOXYGEN "Enable doxygen doc builds of source" OFF)
+  option(ENABLE_DOXYGEN "Enable doxygen doc builds of source" ON)
 
   if(ENABLE_DOXYGEN)
     if(NOT DOXYGEN_FOUND)
