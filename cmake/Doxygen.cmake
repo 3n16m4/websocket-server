@@ -1,8 +1,8 @@
 function(enable_doxygen)
-  find_package(Doxygen REQUIRED dot)
   option(ENABLE_DOXYGEN "Enable doxygen doc builds of source" OFF)
 
   if(ENABLE_DOXYGEN)
+    find_package(Doxygen REQUIRED dot)
     if(NOT DOXYGEN_FOUND)
         message(FATAL_ERROR "Doxygen is needed to build the documentation.")
     endif()
