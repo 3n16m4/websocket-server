@@ -30,3 +30,7 @@ docs/*.db
 #Python specific files
 venv/
 *.pyc
+
+#Node specific files
+test/*.json
+test/node_modules/*

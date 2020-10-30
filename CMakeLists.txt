@@ -95,4 +95,3 @@ if(ENABLE_TESTING)
     message("Building Tests.")
     add_subdirectory(test)
 endif()
-
