@@ -1,6 +1,8 @@
 find_path(BOOST_ASIO_INCLUDE_DIRS "boost/asio.hpp")
 find_path(BOOST_BEAST_INCLUDE_DIRS "boost/beast.hpp")
 
+find_package(OpenSSL REQUIRED)
+
 set(SRC_FILES
     main.cc
     SharedState.hh
@@ -8,13 +10,17 @@ set(SRC_FILES
     TCPListener.cc
     WebsocketSession.hh
     WebsocketSession.cc
-    WebsocketSessionPlain.hh
-    WebsocketSessionPlain.cc
-    WebsocketSessionSSL.hh
-    WebsocketSessionSSL.cc
+    PlainWebsocketSession.hh
+    PlainWebsocketSession.cc
+    SSLWebsocketSession.hh
+    SSLWebsocketSession.cc
 )
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    OpenSSL::SSL
+    OpenSSL::Crypto
+)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src)
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
