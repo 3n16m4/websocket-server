@@ -1,3 +1,3 @@
-#include "websocket_server/SSLWebsocketSession.hh"
+#include "websocket_server/SSLWebSocketSession.hh"
 
 using namespace amadeus;

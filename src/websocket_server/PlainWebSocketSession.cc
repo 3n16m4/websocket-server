@@ -1,4 +1,4 @@
-#include "websocket_server/PlainWebsocketSession.hh"
+#include "websocket_server/PlainWebSocketSession.hh"
 
 using namespace amadeus;
 

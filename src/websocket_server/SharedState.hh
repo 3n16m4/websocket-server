@@ -28,7 +28,7 @@ class SharedState
 
   public:
     /// \brief Join a websocket session and insert it into the list.
-    /// \tparam SessionType The SessionType can either be PlainWebsocketSession
+    /// \tparam SessionType The SessionType can either be PlainWebSocketSession
     /// or SSLWebSocketSession.
     /// \remarks Thread-Safe.
     template <typename SessionType>
@@ -42,7 +42,7 @@ class SharedState
     }
 
     /// \brief Leave a websocket session and erase it from the list.
-    /// \tparam SessionType The SessionType can either be PlainWebsocketSession
+    /// \tparam SessionType The SessionType can either be PlainWebSocketSession
     /// or SSLWebSocketSession.
     /// \remarks Thread-Safe.
     template <typename SessionType>
@@ -57,7 +57,7 @@ class SharedState
 
     /// \brief Broadcast a message to all connected websocket sessions from the
     /// list.
-    /// \tparam SessionType The SessionType can either be PlainWebsocketSession
+    /// \tparam SessionType The SessionType can either be PlainWebSocketSession
     /// or SSLWebSocketSession.
     /// \remarks Thread-Safe.
     template <typename SessionType>
@@ -67,7 +67,7 @@ class SharedState
         // persistent.
         auto const s = std::make_shared<std::string const>(std::move(_message));
 
-        std::vector<std::weak_ptr<WebsocketSession>> v;
+        std::vector<std::weak_ptr<WebSocketSession>> v;
         {
             std::scoped_lock<std::mutex> lk(mtx_);
             copySessions<SessionType>(v);
@@ -85,7 +85,7 @@ class SharedState
     /// \brief For performance reasons we'll copy all weak_ptr from the session
     /// list into a local vector. This is done to avoid holding a lock while
     /// broadcasting the message.
-    /// \tparam SessionType The SessionType can either be PlainWebsocketSession
+    /// \tparam SessionType The SessionType can either be PlainWebSocketSession
     /// or SSLWebSocketSession.
     /// \tparam ContainerSequence The container in which to copy the sessions
     /// to. The container must be of type std::vector<SessionType*>.
@@ -110,7 +110,7 @@ class SharedState
     }
 
     /// \brief Returns the size by the given SessionType.
-    /// \tparam SessionType The SessionType can either be PlainWebsocketSession
+    /// \tparam SessionType The SessionType can either be PlainWebSocketSession
     /// or SSLWebSocketSession.
     template <typename SessionType>
     auto size() const noexcept

@@ -10,7 +10,7 @@
 namespace amadeus {
 class SSLWebSocketSession
     : public WebSocketSession<SSLWebSocketSession>
-    , std::enable_shared_from_this<SSLWebSocketSession>
+    , public std::enable_shared_from_this<SSLWebSocketSession>
 {
   private:
     websocket::stream<beast::ssl_stream<beast::tcp_stream>> ws_;
