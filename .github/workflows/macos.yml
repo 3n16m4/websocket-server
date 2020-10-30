@@ -32,7 +32,8 @@ jobs:
       - name: "Generate build files"
         env:
           VCPKG_DEFAULT_TRIPLET: x64-osx
-        run: cmake -DCMAKE_BUILD_TYPE=Debug \
+        run: cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl \
+                   -DCMAKE_BUILD_TYPE=Debug \
                    -DCMAKE_TOOLCHAIN_FILE="/usr/local/share/vcpkg/scripts/buildsystems/vcpkg.cmake" \
                    -DVCPKG_TARGET_TRIPLET=$VCPKG_DEFAULT_TRIPLET \
                    -B build .

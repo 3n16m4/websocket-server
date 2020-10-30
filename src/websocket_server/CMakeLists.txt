@@ -8,12 +8,12 @@ set(SRC_FILES
     SharedState.hh
     TCPListener.hh
     TCPListener.cc
-    WebsocketSession.hh
-    WebsocketSession.cc
-    PlainWebsocketSession.hh
-    PlainWebsocketSession.cc
-    SSLWebsocketSession.hh
-    SSLWebsocketSession.cc
+    WebSocketSession.hh
+    WebSocketSession.cc
+    PlainWebSocketSession.hh
+    PlainWebSocketSession.cc
+    SSLWebSocketSession.hh
+    SSLWebSocketSession.cc
 )
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
