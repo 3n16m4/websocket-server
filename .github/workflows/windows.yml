@@ -12,10 +12,9 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
-      with:
-        token: ${{ secrets.CI_PAT }}
-        submodules: true
+    - uses: actions/checkout@v1
+    - name: "Initialize sub modules"
+      run: git submodule update --init --recursive
 
     - name: "Install dependencies"
       run: vcpkg --triplet x64-windows install @${{ github.workspace }}\response_file.txt --clean-after-build
