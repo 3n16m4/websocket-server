@@ -14,6 +14,8 @@ set(SRC_FILES
     PlainWebSocketSession.cc
     SSLWebSocketSession.hh
     SSLWebSocketSession.cc
+    WebSocketSessionFactory.hh
+    WebSocketSessionFactory.cc
 )
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
