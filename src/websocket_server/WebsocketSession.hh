@@ -10,7 +10,7 @@ namespace amadeus {
 /// CRTP is used here to avoid code duplication and virtual function calls.
 /// This is not only beneficial for performance but also to allow SSL websocket
 /// sessions and regular websocket sessions to work with the same code.
-/// \brief Provides a simple default WebsocketSession implementation.
+/// \brief Provides a simple default WebSocketSession implementation.
 template <class Derived>
 class WebSocketSession
 {

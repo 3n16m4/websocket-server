@@ -1,7 +1,7 @@
 #ifndef WEBSOCKET_SERVER_SSL_WEBSOCKET_SESSION_HH
 #define WEBSOCKET_SERVER_SSL_WEBSOCKET_SESSION_HH
 
-#include "websocket_server/WebsocketSession.hh"
+#include "websocket_server/WebSocketSession.hh"
 
 #include <boost/beast/core/tcp_stream.hpp>
 #include <boost/beast/websocket/stream.hpp>
