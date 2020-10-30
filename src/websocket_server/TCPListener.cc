@@ -11,15 +11,8 @@ TCPListener::TCPListener(asio::io_context& _io, tcp::endpoint _endpoint)
 {
 }
 
-void TCPListener::run()
+void TCPListener::doAccept()
 {
-    // Open the acceptor, reuse same address, bind server address and start
-    // listening for new connections.
-    acceptor_.open(endpoint_.protocol());
-    acceptor_.set_option(asio::socket_base::reuse_address(true));
-    acceptor_.bind(endpoint_);
-    acceptor_.listen(asio::socket_base::max_listen_connections);
-
     // Every new connections gets its own strand to make sure that their
     // handlers are not executed concurrently.
     acceptor_.async_accept(
@@ -42,4 +35,17 @@ void TCPListener::onAccept(beast::error_code const& _error,
                                    onAccept(ec, std::move(socket));
                                });
     }
+}
+
+void TCPListener::run()
+{
+    // Open the acceptor, reuse same address, bind server address and start
+    // listening for new connections.
+    acceptor_.open(endpoint_.protocol());
+    acceptor_.set_option(asio::socket_base::reuse_address(true));
+    acceptor_.bind(endpoint_);
+    acceptor_.listen(asio::socket_base::max_listen_connections);
+
+    // Accept new connections.
+    doAccept();
 }

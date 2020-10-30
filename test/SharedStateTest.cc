@@ -4,26 +4,26 @@
 
 using namespace amadeus;
 
-TEST(SharedStateTest, JoinPlain)
+TEST(SharedStateTest, JoinSSLWebSocketSession)
 {
     auto state = std::make_shared<SharedState>();
-    auto sessionPlain = std::make_shared<WebsocketSessionPlain>();
+    auto sessionPlain = std::make_shared<SSLWebSocketSession>();
 
     state->join(sessionPlain.get());
     state->join(sessionPlain.get());
 
-    ASSERT_TRUE(state->size<WebsocketSessionPlain>() == 1);
-    ASSERT_TRUE(state->size<WebsocketSessionSSL>() == 0);
+    ASSERT_TRUE(state->size<SSLWebSocketSession>() == 1);
+    ASSERT_TRUE(state->size<SSLWebSocketSession>() == 0);
 }
 
-TEST(SharedStateTest, JoinSSL)
+TEST(SharedStateTest, JoinSSLWebsocketSession)
 {
     auto state = std::make_shared<SharedState>();
-    auto sessionSSL = std::make_shared<WebsocketSessionSSL>();
+    auto sessionSSL = std::make_shared<SSLWebSocketSession>();
 
     state->join(sessionSSL.get());
     state->join(sessionSSL.get());
 
-    ASSERT_TRUE(state->size<WebsocketSessionSSL>() == 1);
-    ASSERT_TRUE(state->size<WebsocketSessionPlain>() == 0);
+    ASSERT_TRUE(state->size<SSLWebSocketSession>() == 1);
+    ASSERT_TRUE(state->size<SSLWebSocketSession>() == 0);
 }

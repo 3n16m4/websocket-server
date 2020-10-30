@@ -1,6 +1,8 @@
 #ifndef WEBSOCKET_SERVER_WEBSOCKET_SESSION_HH
 #define WEBSOCKET_SERVER_WEBSOCKET_SESSION_HH
 
+#include "websocket_server/asiofwd.hh"
+
 #include <memory>
 #include <string>
 
@@ -10,7 +12,7 @@ namespace amadeus {
 /// sessions and regular websocket sessions to work with the same code.
 /// \brief Provides a simple default WebsocketSession implementation.
 template <class Derived>
-class WebsocketSession
+class WebSocketSession
 {
   private:
     /// \brief Helper function to access the derived class.

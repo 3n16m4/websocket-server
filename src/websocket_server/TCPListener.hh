@@ -2,6 +2,7 @@
 #define WEBSOCKET_SERVER_LISTENER_HH
 
 #include "websocket_server/asiofwd.hh"
+#include "websocket_server/SharedState.hh"
 
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/beast/core/error.hpp>
@@ -18,10 +19,16 @@ class TCPListener
   private:
     /// A reference to the main IO-Context.
     asio::io_context& io_;
+    /// TODO: A reference to the main SSL-Context.
     /// The TCP acceptor.
     tcp::acceptor acceptor_;
     /// The endpoint associated to the TCP acceptor.
     tcp::endpoint endpoint_;
+    /// The shared state for each session.
+    std::shared_ptr<SharedState> state_;
+
+    /// \brief Accepts new incoming connections.
+    void doAccept();
 
     /// \brief Called each time a new connection was accepted.
     void onAccept(beast::error_code const& _error, tcp::socket&& _socket);
