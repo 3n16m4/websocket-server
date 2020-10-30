@@ -26,14 +26,11 @@ void TCPListener::onAccept(beast::error_code const& _error,
     if (_error) {
         /// TODO: Handle error properly.
     } else {
+        /// TODO: Detect session
         /// TODO: Create a new session and give up ownership to the socket.
 
-        // Every new connections gets its own strand to make sure that their
-        // handlers are not executed concurrently.
-        acceptor_.async_accept(asio::make_strand(io_),
-                               [this](auto&& ec, auto&& socket) {
-                                   onAccept(ec, std::move(socket));
-                               });
+        // Accept another connection.
+        doAccept();
     }
 }
 

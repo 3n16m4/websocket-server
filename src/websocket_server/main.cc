@@ -5,7 +5,6 @@
 #include <boost/container/small_vector.hpp>
 
 #include <iostream>
-#include <string_view>
 #include <thread>
 
 using namespace amadeus;
@@ -51,7 +50,7 @@ int main(int argc, char* argv[])
     CommandLineInterface cli;
     try {
         cli.parse(argc, argv);
-    } catch (std::exception const& e) {
+    } catch (std::invalid_argument const& e) {
         std::cerr << e.what() << '\n';
         return EXIT_FAILURE;
     }
