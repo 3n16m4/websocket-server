@@ -34,3 +34,4 @@ venv/
 #Node specific files
 test/*.json
 test/node_modules/*
+CMakeSettings.json
