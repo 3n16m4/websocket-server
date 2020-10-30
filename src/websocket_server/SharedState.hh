@@ -67,7 +67,7 @@ class SharedState
         // persistent.
         auto const s = std::make_shared<std::string const>(std::move(_message));
 
-        std::vector<std::weak_ptr<WebSocketSession>> v;
+        std::vector<std::weak_ptr<SessionType>> v;
         {
             std::scoped_lock<std::mutex> lk(mtx_);
             copySessions<SessionType>(v);
