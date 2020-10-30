@@ -5,6 +5,11 @@
 
 /// Forward declarations
 namespace boost {
+namespace asio {
+namespace ssl {
+class context;
+}
+} // namespace asio
 namespace beast {
 namespace http {
 }
@@ -15,6 +20,7 @@ namespace websocket {
 
 /// Boost/Asio
 namespace asio = boost::asio;
+namespace ssl = boost::asio::ssl;
 using tcp = asio::ip::tcp;
 
 // Boost/Beast

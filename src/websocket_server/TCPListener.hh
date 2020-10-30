@@ -19,7 +19,8 @@ class TCPListener
   private:
     /// A reference to the main IO-Context.
     asio::io_context& io_;
-    /// TODO: A reference to the main SSL-Context.
+    /// A reference to the main SSL-Context.
+    ssl::context& ctx_;
     /// The TCP acceptor.
     tcp::acceptor acceptor_;
     /// The endpoint associated to the TCP acceptor.
@@ -36,8 +37,10 @@ class TCPListener
   public:
     /// \brief Constructor.
     /// \param _io A reference to the main IO-Context.
+    /// \param _ctx A reference to the main SSL-Context.
     /// \param _endpoint The endpoint to which the tcp acceptor will listen to.
-    TCPListener(asio::io_context& _io, tcp::endpoint _endpoint);
+    TCPListener(asio::io_context& _io, ssl::context& _ctx,
+                tcp::endpoint _endpoint);
 
     /// \brief Starts the listener and accepting incoming connections.
     /// \throw Any exception thrown by boost.

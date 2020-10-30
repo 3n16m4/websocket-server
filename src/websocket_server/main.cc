@@ -1,7 +1,9 @@
 #include "websocket_server/TCPListener.hh"
+#include "websocket_server/ServerCertificate.hh"
 
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/signal_set.hpp>
+#include <boost/asio/ssl/context.hpp>
 #include <boost/container/small_vector.hpp>
 
 #include <iostream>
@@ -60,8 +62,20 @@ int main(int argc, char* argv[])
     // The main io_context shared between all I/O operations and threads.
     asio::io_context io{static_cast<int>(cli.threads)};
 
+    // The main SSL-Context shared between all SSL I/O operations and threads.
+    // It holds the server certificate.
+    ssl::context ctx{ssl::context::tlsv13};
+
+    /// Load self-signed certificate for the server.
+    try {
+        loadServerCertificate(ctx);
+    } catch (boost::system::system_error const& e) {
+        std::cerr << e.what() << '\n';
+        return EXIT_FAILURE;
+    }
+
     // Create and launch the TCP listener.
-    TCPListener listener{io, tcp::endpoint{cli.ip, cli.port}};
+    TCPListener listener{io, ctx, tcp::endpoint{cli.ip, cli.port}};
     try {
         listener.run();
     } catch (boost::system::system_error const& e) {

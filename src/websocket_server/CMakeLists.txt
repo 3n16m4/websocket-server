@@ -5,6 +5,10 @@ find_package(OpenSSL REQUIRED)
 
 set(SRC_FILES
     main.cc
+    ServerCertificate.hh
+    ServerCertificate.cc
+    DetectSession.hh
+    DetectSession.cc
     SharedState.hh
     TCPListener.hh
     TCPListener.cc

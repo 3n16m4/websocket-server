@@ -1,11 +1,14 @@
 #include "websocket_server/TCPListener.hh"
+#include "websocket_server/DetectSession.hh"
 
 #include <boost/asio/strand.hpp>
 
 using namespace amadeus;
 
-TCPListener::TCPListener(asio::io_context& _io, tcp::endpoint _endpoint)
+TCPListener::TCPListener(asio::io_context& _io, ssl::context& _ctx,
+                         tcp::endpoint _endpoint)
     : io_(_io)
+    , ctx_(_ctx)
     , acceptor_(asio::make_strand(_io))
     , endpoint_(std::move(_endpoint))
 {
@@ -26,8 +29,10 @@ void TCPListener::onAccept(beast::error_code const& _error,
     if (_error) {
         /// TODO: Handle error properly.
     } else {
-        /// TODO: Detect session
-        /// TODO: Create a new session and give up ownership to the socket.
+        // Create a session detector, give up ownership to the socket and run
+        // it.
+        std::make_shared<DetectSession>(std::move(_socket), ctx_, state_)
+            ->run();
 
         // Accept another connection.
         doAccept();
