@@ -29,3 +29,19 @@ The µC TCP-Client performs the following actions:
 2. TCP Send 'Handshake' request packet
 3. TCP Recv 'Handshake' response packet
 4. Connection is either established or the server refused the connection
+
+### µC (Client App)
+------------------------
+
+-  ...
+
+### Server
+------------------------
+
+- ...
+
+### Frontend
+------------------------
+
+- ...
+
