@@ -1,4 +1,7 @@
 #include "websocket_server/DetectSession.hh"
+#include "websocket_server/PlainProtocolDetector.hh"
+#include "websocket_server/SSLProtocolDetector.hh"
+#include "websocket_server/Common.hh"
 
 #include <boost/asio/dispatch.hpp>
 #include <boost/beast/core/tcp_stream.hpp>
@@ -26,8 +29,7 @@ void DetectSession::run()
 
 void DetectSession::onRun()
 {
-    // Set a timeout.
-    stream_.expires_after(std::chrono::seconds(10));
+    stream_.expires_after(std::chrono::seconds(Timeout));
 
     beast::async_detect_ssl(stream_, buffer_,
                             [self = shared_from_this()](
@@ -45,9 +47,15 @@ void DetectSession::onDetect(beast::error_code const& _error, bool _result)
 
     if (_result) {
         // An SSL connection was detected.
-        /// TODO: Launch SSL session.
+        // Launch SSLProtocolDetector.
+        std::make_shared<SSLProtocolDetector>(std::move(stream_), ctx_,
+                                              std::move(buffer_))
+            ->run();
     } else {
         // A plain (non-secure) session was detected.
-        /// TODO: Launch plain session.
+        // Launch PlainProtocolDetector.
+        std::make_unique<PlainProtocolDetector>(std::move(stream_),
+                                                std::move(buffer_))
+            ->run();
     }
 }
