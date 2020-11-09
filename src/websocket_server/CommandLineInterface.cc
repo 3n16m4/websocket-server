@@ -20,7 +20,7 @@ void CommandLineInterface::parse(int _argc, char* _argv[])
     ip = asio::ip::make_address(_argv[1]);
     port = static_cast<decltype(port)>(std::atoi(_argv[2]));
     docRoot = _argv[3];
-    threads = static_cast<decltype(threads)>(std::atoi(_argv[3]));
+    threads = static_cast<decltype(threads)>(std::atoi(_argv[4]));
 
     if (threads == 0) {
         threads = std::thread::hardware_concurrency();

@@ -13,7 +13,7 @@ class ProtocolDetector
 {
   private:
     /// The HTTP Request parser.
-    std::optional<http::request_parser<http::string_body>> parser_;
+    http::request_parser<http::string_body> parser_;
 
     /// \brief Helper function to access the derived class.
     Derived& derived()
