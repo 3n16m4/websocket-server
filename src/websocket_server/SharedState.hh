@@ -4,6 +4,7 @@
 #include "websocket_server/PlainWebSocketSession.hh"
 #include "websocket_server/SSLWebSocketSession.hh"
 
+#include <memory>
 #include <mutex>
 #include <string>
 #include <type_traits>
@@ -19,6 +20,8 @@ namespace amadeus {
 class SharedState
 {
   private:
+    /// The document root.
+    std::string const docRoot_;
     /// Protects the sessions list.
     std::mutex mtx_;
     /// A set to track all plain websockets.
@@ -27,6 +30,19 @@ class SharedState
     std::unordered_set<SSLWebSocketSession*> ssl_sessions_;
 
   public:
+    /// \brief Constructor.
+    /// \param _docRoot The document resources directory.
+    SharedState(std::string _docRoot)
+        : docRoot_(std::move(_docRoot))
+    {
+    }
+
+    /// \brief Returns the document root.
+    std::string const& docRoot() const noexcept
+    {
+        return docRoot_;
+    }
+
     /// \brief Join a websocket session and insert it into the list.
     /// \tparam SessionType The SessionType can either be PlainWebSocketSession
     /// or SSLWebSocketSession.
