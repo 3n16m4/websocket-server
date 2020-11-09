@@ -40,7 +40,8 @@ class TCPListener
     /// \param _ctx A reference to the main SSL-Context.
     /// \param _endpoint The endpoint to which the tcp acceptor will listen to.
     TCPListener(asio::io_context& _io, ssl::context& _ctx,
-                tcp::endpoint _endpoint);
+                tcp::endpoint _endpoint,
+                std::shared_ptr<SharedState> const& _state);
 
     /// \brief Starts the listener and accepting incoming connections.
     /// \throw Any exception thrown by boost.

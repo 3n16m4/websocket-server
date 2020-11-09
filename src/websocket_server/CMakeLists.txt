@@ -5,6 +5,8 @@ find_package(OpenSSL REQUIRED)
 
 set(SRC_FILES
     main.cc
+    CommandLineInterface.hh
+    CommandLineInterface.cc
     ServerCertificate.hh
     ServerCertificate.cc
     DetectSession.hh
@@ -20,6 +22,12 @@ set(SRC_FILES
     SSLWebSocketSession.cc
     WebSocketSessionFactory.hh
     WebSocketSessionFactory.cc
+    HttpSession.hh
+    HttpSession.cc
+    PlainHttpSession.hh
+    PlainHttpSession.cc
+    SSLHttpSession.hh
+    SSLHttpSession.cc
 )
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})

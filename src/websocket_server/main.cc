@@ -1,3 +1,4 @@
+#include "websocket_server/CommandLineInterface.hh"
 #include "websocket_server/TCPListener.hh"
 #include "websocket_server/ServerCertificate.hh"
 
@@ -10,39 +11,6 @@
 #include <thread>
 
 using namespace amadeus;
-
-/// \brief A simple CLI for parsing the necessary options for the TCP Listener.
-struct CommandLineInterface
-{
-    /// The IP Address the server will listen to.
-    asio::ip::address ip;
-    /// The Port the server will listen to.
-    std::uint16_t port;
-    /// The amount of threads the server will utilize.
-    std::uint32_t threads;
-
-    void parse(int _argc, char* _argv[])
-    {
-        // ./websocket_server <address> <port> <threads>
-        if (_argc != 4) {
-            throw std::invalid_argument(
-                "Invalid arguments.\nUsage: ./websocket_server <address> "
-                "<port> <threads>.\nExample: ./websocket_server 127.0.0.1 8080 "
-                "8\nYou may also set <threads> to 0 to enable full utilization "
-                "of the hardware threads.\n");
-        }
-        ip = asio::ip::make_address(_argv[1]);
-        port = static_cast<decltype(port)>(std::atoi(_argv[2]));
-        threads = static_cast<decltype(threads)>(std::atoi(_argv[3]));
-
-        if (threads == 0) {
-            threads = std::thread::hardware_concurrency();
-        }
-
-        std::cout << "Arguments: " << ip << " " << port << " " << threads
-                  << '\n';
-    }
-};
 
 /// \brief The main function.
 /// \param argc Number of arguments.
@@ -75,7 +43,9 @@ int main(int argc, char* argv[])
     }
 
     // Create and launch the TCP listener.
-    TCPListener listener{io, ctx, tcp::endpoint{cli.ip, cli.port}};
+    TCPListener listener{io, ctx, tcp::endpoint{cli.ip, cli.port},
+                         std::make_shared<SharedState>(cli.docRoot)};
+
     try {
         listener.run();
     } catch (boost::system::system_error const& e) {

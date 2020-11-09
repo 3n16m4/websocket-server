@@ -6,11 +6,13 @@
 using namespace amadeus;
 
 TCPListener::TCPListener(asio::io_context& _io, ssl::context& _ctx,
-                         tcp::endpoint _endpoint)
+                tcp::endpoint _endpoint,
+                std::shared_ptr<SharedState> const& _state)
     : io_(_io)
     , ctx_(_ctx)
     , acceptor_(asio::make_strand(_io))
     , endpoint_(std::move(_endpoint))
+    , state_(_state)
 {
 }
 

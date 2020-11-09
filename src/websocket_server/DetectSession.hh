@@ -33,8 +33,8 @@ class DetectSession : public std::enable_shared_from_this<DetectSession>
 
   public:
     /// \brief Constructor.
-    explicit DetectSession(tcp::socket&& _socket, ssl::context& _ctx,
-                           std::shared_ptr<SharedState> const& _state);
+    DetectSession(tcp::socket&& _socket, ssl::context& _ctx,
+                  std::shared_ptr<SharedState> const& _state);
 
     /// \brief Starts the SSL detector.
     void run();
