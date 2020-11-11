@@ -48,12 +48,12 @@ int main(int argc, char* argv[])
                               std::make_shared<SharedState>(cli.docRoot)};
 
     // Create and launch the TCP listener.
-    /*TCPListener tcpListener{io, ctx, tcp::endpoint{cli.ip, cli.tcpPort},
-                            std::make_shared<SharedState>(cli.docRoot)};*/
+    TCPListener tcpListener{io, ctx, tcp::endpoint{cli.ip, cli.tcpPort},
+                            std::make_shared<SharedState>(cli.docRoot)};
 
     try {
         httpListener.run();
-        // tcpListener.run();
+        tcpListener.run();
     } catch (boost::system::system_error const& e) {
         std::cerr << e.what() << '\n';
         io.stop();

@@ -81,7 +81,7 @@ void amadeus::loadServerCertificate(ssl::context& _ctx)
             asio::buffer(CERTIFICATE.data(), CERTIFICATE.size()));
 
         _ctx.use_private_key(asio::buffer(KEY.data(), KEY.size()),
-                             ssl::context::file_format::pem);
+                             ssl::context::pem);
 
         _ctx.use_tmp_dh(
             asio::buffer(DH_PARAMETERS.data(), DH_PARAMETERS.size()));

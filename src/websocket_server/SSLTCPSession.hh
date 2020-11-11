@@ -21,12 +21,19 @@ class SSLTCPSession
     /// The underlying TCP SSL stream.
     beast::ssl_stream<beast::tcp_stream> stream_;
 
+    char data_[1024];
+
     /// \brief CompletionToken for the asynchronous SSL handshake.
     void onHandshake(beast::error_code const& _error,
                      std::size_t _bytesTransferred);
 
     /// \brief CompletionToken for the asynchronous SSL shutdown.
     void onShutdown(beast::error_code const& _error);
+
+    void onWrite(beast::error_code const& _error,
+                 std::size_t _bytesTransferred);
+
+    void doWrite();
 
   public:
     /// \brief Create a secure TCP Session.

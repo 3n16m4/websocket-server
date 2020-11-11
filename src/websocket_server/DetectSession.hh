@@ -15,7 +15,7 @@
 namespace amadeus {
 /// Forward declarations
 class SharedState;
-template <class Derived, class BufferType = beast::flat_buffer>
+template <class Derived>
 class DetectSession
 {
   protected:
@@ -26,7 +26,7 @@ class DetectSession
     /// The main TCP Stream.
     beast::tcp_stream stream_;
     /// The underlying buffer for determining an SSL request.
-    BufferType buffer_;
+    beast::flat_buffer buffer_;
 
   private:
     /// \brief Helper function to access the derived class.
@@ -40,12 +40,18 @@ class DetectSession
     {
         stream_.expires_after(std::chrono::seconds(Timeout));
 
+        /// \note It is worth mentioning that [async]_detect_ssl already
+        /// consumes bytes from the socket and transfers them to the supplied
+        /// buffer. As such, the buffer should be preserved and reused in
+        /// subsequent operations without initiating another [async]_read
+        /// operation.
         beast::async_detect_ssl(
             stream_, buffer_,
             [self = derived().shared_from_this()](
                 beast::error_code const& error, bool result) {
                 if (error) {
-                  /// TODO: handle...
+                    /// TODO: handle...
+                    return;
                 }
                 self->onDetect(result);
             });
