@@ -3,6 +3,8 @@
 
 #include "websocket_server/asiofwd.hh"
 
+#include <boost/beast/http/message.hpp>
+
 #include <memory>
 #include <string>
 
@@ -22,6 +24,14 @@ class WebSocketSession
     }
 
   public:
+    /// \brief Start the asynchronous operation.
+    template <class Body, class Allocator>
+    void run(http::request<Body, http::basic_fields<Allocator>> _req)
+    {
+        // Accept the WebSocket upgrade request
+        // doAccept(std::move(_req));
+    }
+
     void send(std::shared_ptr<std::string const> const& _message)
     {
         // ... some queue work

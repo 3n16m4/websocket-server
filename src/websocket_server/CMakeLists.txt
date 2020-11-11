@@ -11,15 +11,9 @@ set(SRC_FILES
     ServerCertificate.cc
     DetectSession.hh
     DetectSession.cc
-    ProtocolDetector.hh
-    ProtocolDetector.cc
-    PlainProtocolDetector.hh
-    PlainProtocolDetector.cc
-    SSLProtocolDetector.hh
-    SSLProtocolDetector.cc
     SharedState.hh
-    TCPListener.hh
-    TCPListener.cc
+    Listener.hh
+    Listener.cc
     TCPSession.hh
     TCPSession.cc
     PlainTCPSession.hh

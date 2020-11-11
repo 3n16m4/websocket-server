@@ -1,4 +1,5 @@
 #include "websocket_server/CommandLineInterface.hh"
+#include "websocket_server/HttpListener.hh"
 #include "websocket_server/TCPListener.hh"
 #include "websocket_server/ServerCertificate.hh"
 
@@ -42,19 +43,24 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
+    // Create and launch the HTTP listener.
+    HttpListener httpListener{io, ctx, tcp::endpoint{cli.ip, cli.httpPort},
+                              std::make_shared<SharedState>(cli.docRoot)};
+
     // Create and launch the TCP listener.
-    TCPListener listener{io, ctx, tcp::endpoint{cli.ip, cli.port},
-                         std::make_shared<SharedState>(cli.docRoot)};
+    /*TCPListener tcpListener{io, ctx, tcp::endpoint{cli.ip, cli.tcpPort},
+                            std::make_shared<SharedState>(cli.docRoot)};*/
 
     try {
-        listener.run();
+        httpListener.run();
+        // tcpListener.run();
     } catch (boost::system::system_error const& e) {
         std::cerr << e.what() << '\n';
         io.stop();
         return EXIT_FAILURE;
     }
 
-    std::cout << "Server running at " << cli.ip << ":" << cli.port << "!\n";
+    std::cout << "Server running at " << cli.ip << ":" << cli.httpPort << "!\n";
 
     // Capture SIGINT, SIGTERM for a clean shutdown.
     asio::signal_set signals(io, SIGINT, SIGTERM);
@@ -69,7 +75,7 @@ int main(int argc, char* argv[])
     // Run the io_context for the specified amount of threads - 1.
     // This will make sure that at least one io_context is run on the
     // main-thread.
-    auto constexpr TypicalMaxThreadCount{12U};
+    auto constexpr TypicalMaxThreadCount{8U};
     boost::container::small_vector<std::thread, TypicalMaxThreadCount> threads;
     threads.reserve(cli.threads);
     for (auto i = cli.threads - 1; i > 0; --i) {

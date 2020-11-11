@@ -5,6 +5,8 @@
 
 #include <boost/beast/core/tcp_stream.hpp>
 
+#include <iostream>
+
 namespace amadeus {
 class PlainHttpSession
     : public HttpSession<PlainHttpSession>
@@ -21,12 +23,31 @@ class PlainHttpSession
         : HttpSession<PlainHttpSession>(std::move(_buffer), _state)
         , stream_(std::move(_stream))
     {
+        std::cout << "PlainHttpSession::PlainHttpSession()\n";
+    }
+
+    ~PlainHttpSession()
+    {
+        std::cout << "PlainHttpSession::~PlainHttpSession()\n";
+    }
+
+    /// \brief Return the underlying TCP stream.
+    beast::tcp_stream& stream() noexcept
+    {
+        return stream_;
+    }
+
+    /// \brief Returns and moves ownership of the underlying TCP stream to the
+    /// caller.
+    beast::tcp_stream releaseStream() noexcept
+    {
+        return std::move(stream_);
     }
 
     /// \brief Starts the HTTP Session.
     void run()
     {
-        doRead();
+        this->doRead();
     }
 
     /// \brief Ends the HTTP Session.

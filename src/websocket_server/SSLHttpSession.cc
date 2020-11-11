@@ -27,8 +27,20 @@ void SSLHttpSession::disconnect()
 void SSLHttpSession::onHandshake(beast::error_code const& _error,
                                  std::size_t _bytesTransferred)
 {
+    if (_error) {
+        /// TODO: error handling...
+        return;
+    }
+
+    std::cout << "SSLHttpSession::onHandshake()\n";
+
+    // Consume the portion of the buffer used by the handshake
+    buffer_.consume(_bytesTransferred);
+
+    this->doRead();
 }
 
 void SSLHttpSession::onShutdown(beast::error_code const& _error)
 {
+    throw std::runtime_error("NotImplemented");
 }

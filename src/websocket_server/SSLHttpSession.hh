@@ -6,6 +6,12 @@
 #include <boost/beast/core/tcp_stream.hpp>
 #include <boost/beast/ssl/ssl_stream.hpp>
 
+#include <iostream>
+
+/// TODO: Inherit from 'BasicSSLSession' which already implements functions like
+/// async ssl handshake, and async ssl shutdown. The derived class will simply
+/// call the base class. The design will be static polymorphism, aka. CRTP.
+
 namespace amadeus {
 class SSLHttpSession
     : public HttpSession<SSLHttpSession>
@@ -29,6 +35,25 @@ class SSLHttpSession
         : HttpSession<SSLHttpSession>(std::move(_buffer), _state)
         , stream_(std::move(_stream), _ctx)
     {
+        std::cout << "SSLHttpSession::SSLHttpSession()\n";
+    }
+
+    ~SSLHttpSession()
+    {
+        std::cout << "SSLHttpSession::~SSLHttpSession()\n";
+    }
+
+    /// \brief Return the underlying TCP stream.
+    beast::ssl_stream<beast::tcp_stream>& stream() noexcept
+    {
+        return stream_;
+    }
+
+    /// \brief Returns and moves ownership of the underlying TCP stream to the
+    /// caller.
+    beast::ssl_stream<beast::tcp_stream> releaseStream() noexcept
+    {
+        return std::move(stream_);
     }
 
     /// \brief Starts the SSL HTTP Session.
