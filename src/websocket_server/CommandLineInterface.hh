@@ -14,8 +14,10 @@ struct CommandLineInterface
 {
     /// The IP Address the server will listen to.
     asio::ip::address ip;
-    /// The Port the server will listen to.
-    std::uint16_t port;
+    /// The HTTP port the server will listen to.
+    std::uint16_t httpPort;
+    /// The TCP port the server will listen to.
+    std::uint16_t tcpPort;
     /// The document root of all the resources the server will serve.
     std::string docRoot;
     /// The amount of threads the server will utilize.
