@@ -9,7 +9,6 @@
 .idea/**/other.xml
 
 #Visual Studio Code specific files
-.vscode/
 compile_commands.json
 
 #Visual Studio specific files
