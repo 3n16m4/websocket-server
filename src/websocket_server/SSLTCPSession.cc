@@ -48,7 +48,7 @@ void SSLTCPSession::onHandshake(beast::error_code const& _error,
                 std::cout << ec.message() << " " << length << '\n';
                 std::string_view const message{data_, length};
                 std::cout << "Message: " << message << '\n';
-                doWrite();
+                doWrite(length);
             }
         });
 }
@@ -72,15 +72,15 @@ void SSLTCPSession::onWrite(beast::error_code const& _error,
 {
 }
 
-void SSLTCPSession::doWrite()
+void SSLTCPSession::doWrite(std::size_t _bytes)
 {
     auto self(shared_from_this());
     asio::async_write(
-        stream_, boost::asio::buffer(data_),
-        [this, self](const boost::system::error_code& ec, std::size_t length) {
+        stream_, boost::asio::buffer(data_, _bytes),
+        [this, self, _bytes](const boost::system::error_code& ec, std::size_t length) {
             if (!ec) {
-                std::cout << ec.message() << " " << length << '\n';
-                std::string_view const message{data_, length};
+                std::cout << ec.message() << " " << _bytes << '\n';
+                std::string_view const message{data_, _bytes};
                 std::cout << "Wrote: " << message << '\n';
             }
         });

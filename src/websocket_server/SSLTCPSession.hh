@@ -33,7 +33,7 @@ class SSLTCPSession
     void onWrite(beast::error_code const& _error,
                  std::size_t _bytesTransferred);
 
-    void doWrite();
+    void doWrite(std::size_t _bytes);
 
   public:
     /// \brief Create a secure TCP Session.

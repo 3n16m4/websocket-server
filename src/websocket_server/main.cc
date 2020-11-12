@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
 
     // The main SSL-Context shared between all SSL I/O operations and threads.
     // It holds the server certificate.
-    ssl::context ctx{ssl::context::tlsv13};
+    ssl::context ctx{ssl::context::tls_server};
 
     /// Load self-signed certificate for the server.
     try {
