@@ -55,7 +55,16 @@ void SSLTCPSession::onHandshake(beast::error_code const& _error,
 
 void SSLTCPSession::onShutdown(beast::error_code const& _error)
 {
-    throw std::runtime_error("NotImplemented");
+    if (_error) {
+        std::cerr << "SSLTCPSession::onShutdown error: " << _error.message()
+                  << '\n';
+        return;
+    }
+
+    // Close the underlying TCP stream.
+    stream_.next_layer().close();
+
+    std::cout << "SSLTCPSession gracefully shut down.\n";
 }
 
 void SSLTCPSession::onWrite(beast::error_code const& _error,

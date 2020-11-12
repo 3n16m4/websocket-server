@@ -4,7 +4,7 @@ import ssl
 from sys import argv
 
 HOSTNAME = 'localhost'
-PORT = 8081
+PORT = 81
 
 def main():
     # PROTOCOL_TLS_CLIENT requires valid cert chain and hostname
