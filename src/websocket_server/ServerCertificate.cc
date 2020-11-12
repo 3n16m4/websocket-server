@@ -75,7 +75,8 @@ void amadeus::loadServerCertificate(ssl::context& _ctx)
 {
     try {
         _ctx.set_options(ssl::context::default_workarounds |
-                         /*ssl::context::no_tlsv1 | */ssl::context::single_dh_use);
+                         ssl::context::no_tlsv1 | ssl::context::no_tlsv1_1 |
+                         ssl::context::single_dh_use);
 
         _ctx.use_certificate_chain(
             asio::buffer(CERTIFICATE.data(), CERTIFICATE.size()));
