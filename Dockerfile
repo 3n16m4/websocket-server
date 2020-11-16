@@ -16,6 +16,7 @@ RUN apt-get update \
     && apt-get install libc++abi-dev -y \
     && apt-get install cmake -y \
     && apt-get install ninja-build -y \
+    && apt-get install git -y \
     && apt-get install libssl-dev -y \
     && apt-get install libboost1.74-dev -y
 
