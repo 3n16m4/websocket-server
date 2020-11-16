@@ -1,6 +1,5 @@
 #include "websocket_server/CommandLineInterface.hh"
 
-#include <iostream>
 #include <stdexcept>
 #include <thread>
 
@@ -25,7 +24,4 @@ void CommandLineInterface::parse(int _argc, char* _argv[])
     if (threads == 0) {
         threads = std::thread::hardware_concurrency();
     }
-
-    std::cout << "Arguments: " << ip << " " << httpPort << " " << docRoot << " "
-              << threads << '\n';
 }

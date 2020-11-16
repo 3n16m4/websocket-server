@@ -4,6 +4,7 @@
 #include "websocket_server/asiofwd.hh"
 #include "websocket_server/SharedState.hh"
 #include "websocket_server/Common.hh"
+#include "websocket_server/Logger.hh"
 
 #include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/asio/read.hpp>
@@ -12,7 +13,6 @@
 #include <array>
 #include <memory>
 #include <stdexcept>
-#include <iostream>
 #include <string_view>
 
 namespace amadeus {
@@ -37,16 +37,16 @@ class TCPSession
     void onRead(beast::error_code const& _error, std::size_t _bytesTransferred)
     {
         if (_error || _bytesTransferred == 0) {
-            std::cerr << "Error: " << _error.message() << '\n';
+            LOG_ERROR("Read error: {}\n", _error.message());
             return;
         }
 
         beast::get_lowest_layer(derived().stream())
             .expires_after(std::chrono::seconds(Timeout));
 
-        std::cout << _error.message() << " " << _bytesTransferred << '\n';
-        std::cout << "Message " << beast::buffers_to_string(buffer_.data()) << '\n';
-        
+        LOG_DEBUG("{} {}\n", _error.message(), _bytesTransferred);
+        LOG_DEBUG("Message: {}\n", beast::buffers_to_string(buffer_.data()));
+
         asio::async_write(derived().stream(), buffer_,
                           [self = derived().shared_from_this()](
                               auto&& ec, auto&& bytes_transferred) {
@@ -57,8 +57,8 @@ class TCPSession
     /// \brief CompletionToken for the asynchronous write operation.
     void onWrite(beast::error_code const& _error, std::size_t _bytesTransferred)
     {
-        std::cout << "Sent " << beast::buffers_to_string(buffer_.data()) << " "
-                  << _bytesTransferred << " bytes.\n";
+        LOG_DEBUG("Sent {} {} bytes\n",
+                  beast::buffers_to_string(buffer_.data()), _bytesTransferred);
 
         // read another packet.
         asio::async_read(derived().stream(), buffer_,
@@ -80,7 +80,7 @@ class TCPSession
     /// \brief Starts the asynchronous read operation.
     void doRead()
     {
-        std::cout << "TCPSession::doRead()\n";
+        LOG_DEBUG("TCPSession::doRead()\n");
 
         beast::get_lowest_layer(derived().stream())
             .expires_after(std::chrono::seconds(Timeout));

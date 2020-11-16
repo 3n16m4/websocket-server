@@ -6,8 +6,6 @@
 #include <boost/asio/ssl/stream.hpp>
 #include <boost/beast/core/tcp_stream.hpp>
 
-#include <iostream>
-
 /// TODO: Inherit from 'BasicSSLSession' which already implements functions like
 /// async ssl handshake, and async ssl shutdown. The derived class will simply
 /// call the base class. The design will be static polymorphism, aka. CRTP.
@@ -39,17 +37,9 @@ class SSLTCPSession
     /// \brief Create a secure TCP Session.
     SSLTCPSession(beast::tcp_stream&& _stream, ssl::context& _ctx,
                   beast::flat_buffer&& _buffer,
-                  std::shared_ptr<SharedState> const& _state)
-        : TCPSession<SSLTCPSession>(std::move(_buffer), _state)
-        , stream_(std::move(_stream), _ctx)
-    {
-        std::cout << "SSLTCPSession::SSLTCPSession()\n";
-    }
+                  std::shared_ptr<SharedState> const& _state);
 
-    ~SSLTCPSession()
-    {
-        std::cout << "SSLTCPSession::~SSLTCPSession()\n";
-    }
+    ~SSLTCPSession();
 
     /// \brief Return the underlying TCP SSL stream.
     beast::ssl_stream<beast::tcp_stream>& stream() noexcept

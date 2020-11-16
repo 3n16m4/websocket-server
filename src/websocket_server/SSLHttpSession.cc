@@ -1,7 +1,22 @@
 #include "websocket_server/SSLHttpSession.hh"
 #include "websocket_server/Common.hh"
+#include "websocket_server/Logger.hh"
 
 using namespace amadeus;
+
+SSLHttpSession::SSLHttpSession(beast::tcp_stream&& _stream, ssl::context& _ctx,
+                               beast::flat_buffer&& _buffer,
+                               std::shared_ptr<SharedState> const& _state)
+    : HttpSession<SSLHttpSession>(std::move(_buffer), _state)
+    , stream_(std::move(_stream), _ctx)
+{
+    LOG_DEBUG("SSLHttpSession::SSLHttpSession()\n");
+}
+
+SSLHttpSession::~SSLHttpSession()
+{
+    LOG_DEBUG("SSLHttpSession::~SSLHttpSession()\n");
+}
 
 void SSLHttpSession::run()
 {
@@ -32,7 +47,7 @@ void SSLHttpSession::onHandshake(beast::error_code const& _error,
         return;
     }
 
-    std::cout << "SSLHttpSession::onHandshake()\n";
+    LOG_DEBUG("SSLHttpSession::onHandshake()\n");
 
     // Consume the portion of the buffer used by the handshake
     buffer_.consume(_bytesTransferred);
@@ -43,13 +58,12 @@ void SSLHttpSession::onHandshake(beast::error_code const& _error,
 void SSLHttpSession::onShutdown(beast::error_code const& _error)
 {
     if (_error) {
-        std::cerr << "SSLHttpSession::onShutdown error: " << _error.message()
-                  << '\n';
+        LOG_ERROR("SSLHttpSession::onShutdown error: {}\n", _error.message());
         return;
     }
 
     // Close the underlying TCP stream.
     stream_.next_layer().close();
 
-    std::cout << "SSLHttpSession gracefully shut down.\n";
+    LOG_DEBUG("SSLHttpSession gracefully shut down.\n");
 }

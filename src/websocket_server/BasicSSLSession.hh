@@ -3,12 +3,12 @@
 
 #include "websocket_server/asiofwd.hh"
 #include "websocket_server/Common.hh"
+#include "websocket_server/Logger.hh"
 
 #include <boost/asio/ssl/stream.hpp>
 #include <boost/beast/core/tcp_stream.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
 
-#include <iostream>
 #include <stdexcept>
 
 namespace amadeus {
@@ -32,7 +32,7 @@ class BasicSSLSession
                      std::size_t _bytesTransferred)
     {
         if (_error) {
-            std::cerr << "Handshake error: " << _error.message() << '\n';
+            LOG_ERROR("Handshake error: {}\n", _error.message());
             return;
         }
 

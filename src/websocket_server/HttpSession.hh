@@ -5,6 +5,7 @@
 #include "websocket_server/WebSocketSessionFactory.hh"
 #include "websocket_server/SharedState.hh"
 #include "websocket_server/Common.hh"
+#include "websocket_server/Logger.hh"
 
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
@@ -20,7 +21,6 @@
 #include <optional>
 #include <memory>
 #include <string>
-#include <iostream>
 #include <stdexcept>
 
 // Return a reasonable mime type based on the extension of a file.
@@ -160,7 +160,7 @@ class HttpSession
         // handle any other error.
         if (_error) {
             /// TODO: handle properly
-            std::cerr << "Error: " << _error.message() << '\n';
+            LOG_ERROR("Read error: {}\n", _error.message());
             return;
         }
 
@@ -229,7 +229,7 @@ class HttpSession
     /// \brief Starts the asynchronous read operation.
     void doRead()
     {
-        std::cout << "HttpSession::doRead()\n";
+        LOG_DEBUG("HttpSession::doRead()\n");
 
         parser_.emplace();
 

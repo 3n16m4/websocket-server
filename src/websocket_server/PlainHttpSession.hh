@@ -5,8 +5,6 @@
 
 #include <boost/beast/core/tcp_stream.hpp>
 
-#include <iostream>
-
 namespace amadeus {
 class PlainHttpSession
     : public HttpSession<PlainHttpSession>
@@ -19,17 +17,9 @@ class PlainHttpSession
   public:
     /// \brief Create a plain HTTP Session.
     PlainHttpSession(beast::tcp_stream&& _stream, beast::flat_buffer&& _buffer,
-                     std::shared_ptr<SharedState> const& _state)
-        : HttpSession<PlainHttpSession>(std::move(_buffer), _state)
-        , stream_(std::move(_stream))
-    {
-        std::cout << "PlainHttpSession::PlainHttpSession()\n";
-    }
+                     std::shared_ptr<SharedState> const& _state);
 
-    ~PlainHttpSession()
-    {
-        std::cout << "PlainHttpSession::~PlainHttpSession()\n";
-    }
+    ~PlainHttpSession();
 
     /// \brief Return the underlying TCP stream.
     beast::tcp_stream& stream() noexcept

@@ -5,8 +5,6 @@
 
 #include <boost/beast/core/tcp_stream.hpp>
 
-#include <iostream>
-
 namespace amadeus {
 class PlainTCPSession
     : public TCPSession<PlainTCPSession>
@@ -19,17 +17,9 @@ class PlainTCPSession
   public:
     /// \brief Create a plain TCP Session.
     PlainTCPSession(beast::tcp_stream&& _stream, beast::flat_buffer&& _buffer,
-                    std::shared_ptr<SharedState> const& _state)
-        : TCPSession<PlainTCPSession>(std::move(_buffer), _state)
-        , stream_(std::move(_stream))
-    {
-        std::cout << "PlainTCPSession::PlainTCPSession()\n";
-    }
+                    std::shared_ptr<SharedState> const& _state);
 
-    ~PlainTCPSession()
-    {
-        std::cout << "PlainTCPSession::~PlainTCPSession()\n";
-    }
+    ~PlainTCPSession();
 
     /// \brief Return the underlying TCP stream.
     beast::tcp_stream& stream() noexcept
