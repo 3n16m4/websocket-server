@@ -1,6 +1,7 @@
 find_path(BOOST_ASIO_INCLUDE_DIRS "boost/asio.hpp")
 find_path(BOOST_BEAST_INCLUDE_DIRS "boost/beast.hpp")
 
+find_package(Threads REQUIRED)
 find_package(OpenSSL REQUIRED)
 
 set(SRC_FILES
@@ -38,6 +39,7 @@ set(SRC_FILES
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 target_link_libraries(${PROJECT_NAME} PRIVATE
+    Threads::Threads
     OpenSSL::SSL
     OpenSSL::Crypto
 )
