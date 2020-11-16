@@ -18,6 +18,7 @@ A fully asynchronous, multi-threaded, lightweight WebSocket server written in C+
 - LLVM CLang, GNU/GCC Compiler or MSVC with C++17 support.
 - boost-beast
 - nlohmann_json
+- fmtlib
 
 > **ProTip:** Use Arch Linux to grab the latest GCC compiler.
 
@@ -64,5 +65,7 @@ Just install the latest [Visual Studio](https://visualstudio.microsoft.com/vs/) 
 cmake, ninja and git should be included in Visual Studio >= 2019.
 
 ## Dependencies
+- Boost.Asio (https://github.com/chriskohlhoff/asio, Christopher M. Kohlhoff)
 - Boost.Beast (https://github.com/boostorg/beast, Vinnie Falco)
 - nlohmann_json (https://github.com/nlohmann/json, Niels Lohmann)
+- fmtlib (https://github.com/fmtlib/fmt, Victor Zverovich)

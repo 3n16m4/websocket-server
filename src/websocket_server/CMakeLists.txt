@@ -1,3 +1,10 @@
+# Depedencies
+CPMAddPackage(
+    NAME fmt
+    GIT_TAG 7.1.2
+    GITHUB_REPOSITORY fmtlib/fmt
+)
+
 find_path(BOOST_ASIO_INCLUDE_DIRS "boost/asio.hpp")
 find_path(BOOST_BEAST_INCLUDE_DIRS "boost/beast.hpp")
 
@@ -15,6 +22,8 @@ set(SRC_FILES
     SharedState.hh
     Listener.hh
     Listener.cc
+    Logger.hh
+    Logger.cc
     TCPSession.hh
     TCPSession.cc
     PlainTCPSession.hh
@@ -42,6 +51,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Threads::Threads
     OpenSSL::SSL
     OpenSSL::Crypto
+    fmt::fmt-header-only
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src)

@@ -87,6 +87,9 @@
         "locale": "cpp",
         "queue": "cpp",
         "semaphore": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "fstream": "cpp",
+        "format": "cpp",
+        "stack": "cpp"
     }
 }

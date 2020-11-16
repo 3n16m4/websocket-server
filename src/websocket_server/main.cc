@@ -1,4 +1,5 @@
 #include "websocket_server/CommandLineInterface.hh"
+#include "websocket_server/Logger.hh"
 #include "websocket_server/HttpListener.hh"
 #include "websocket_server/TCPListener.hh"
 #include "websocket_server/ServerCertificate.hh"
@@ -8,7 +9,6 @@
 #include <boost/asio/ssl/context.hpp>
 #include <boost/container/small_vector.hpp>
 
-#include <iostream>
 #include <thread>
 
 using namespace amadeus;
@@ -18,15 +18,18 @@ using namespace amadeus;
 /// \param argv The arguments.
 int main(int argc, char* argv[])
 {
+    auto& logger = Logger::instance();
+    logger.open("server_log.txt");
+
     CommandLineInterface cli;
     try {
         cli.parse(argc, argv);
     } catch (std::invalid_argument const& e) {
-        std::cerr << e.what() << '\n';
+        LOG_FATAL("{}\n", e.what());
         return EXIT_FAILURE;
     }
 
-    std::cout << "Starting server with " << cli.threads << " threads...\n";
+    LOG_INFO("Starting server with {} threads...\n", cli.threads);
 
     // The main io_context shared between all I/O operations and threads.
     asio::io_context io{static_cast<int>(cli.threads)};
@@ -39,7 +42,7 @@ int main(int argc, char* argv[])
     try {
         loadServerCertificate(ctx);
     } catch (boost::system::system_error const& e) {
-        std::cerr << e.what() << '\n';
+        LOG_FATAL("{}\n", e.what());
         return EXIT_FAILURE;
     }
 
@@ -55,12 +58,12 @@ int main(int argc, char* argv[])
         httpListener.run();
         tcpListener.run();
     } catch (boost::system::system_error const& e) {
-        std::cerr << e.what() << '\n';
+        LOG_FATAL("{}\n", e.what());
         io.stop();
         return EXIT_FAILURE;
     }
 
-    std::cout << "Server running at " << cli.ip << ":" << cli.httpPort << "!\n";
+    LOG_INFO("Server running at {}:{}\n", cli.ip, cli.httpPort);
 
     // Capture SIGINT, SIGTERM for a clean shutdown.
     asio::signal_set signals(io, SIGINT, SIGTERM);
@@ -68,8 +71,8 @@ int main(int argc, char* argv[])
         [&io](boost::system::error_code const& error, int signal_number) {
             // Stop the io_context and all of its associated handlers.
             io.stop();
-            std::cout << "Exited with signal " << signal_number
-                      << " and error: " << error.message() << '\n';
+            LOG_INFO("Exited with signal {} and error: {}\n", signal_number,
+                     error.message());
         });
 
     // Run the io_context for the specified amount of threads - 1.
