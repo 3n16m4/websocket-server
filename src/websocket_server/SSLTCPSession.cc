@@ -20,6 +20,16 @@ SSLTCPSession::~SSLTCPSession()
     LOG_DEBUG("SSLTCPSession::~SSLTCPSession()\n");
 }
 
+beast::ssl_stream<beast::tcp_stream>& SSLTCPSession::stream() noexcept
+{
+    return stream_;
+}
+
+beast::ssl_stream<beast::tcp_stream> SSLTCPSession::releaseStream() noexcept
+{
+    return std::move(stream_);
+}
+
 void SSLTCPSession::run()
 {
     beast::get_lowest_layer(stream_).expires_after(Timeout);
@@ -45,7 +55,7 @@ void SSLTCPSession::onHandshake(beast::error_code const& _error,
                                 std::size_t _bytesTransferred)
 {
     if (_error) {
-        LOG_ERROR("Handshake error: {}\n", _error.message());
+        LOG_ERROR("SSL Handshake error: {}\n", _error.message());
         return;
     }
     LOG_DEBUG("SSLTCPSession::onHandshake()\n");
@@ -68,7 +78,7 @@ void SSLTCPSession::onHandshake(beast::error_code const& _error,
 void SSLTCPSession::onShutdown(beast::error_code const& _error)
 {
     if (_error) {
-        LOG_ERROR("SSLTCPSession::onShutdown error: {}\n", _error.message());
+        LOG_ERROR("SSL Shutdown error: {}\n", _error.message());
         return;
     }
 

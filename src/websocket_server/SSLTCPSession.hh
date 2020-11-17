@@ -42,17 +42,11 @@ class SSLTCPSession
     ~SSLTCPSession();
 
     /// \brief Return the underlying TCP SSL stream.
-    beast::ssl_stream<beast::tcp_stream>& stream() noexcept
-    {
-        return stream_;
-    }
+    beast::ssl_stream<beast::tcp_stream>& stream() noexcept;
 
     /// \brief Returns and moves ownership of the underlying TCP SSL Stream to
     /// the caller.
-    beast::ssl_stream<beast::tcp_stream> releaseStream() noexcept
-    {
-        return std::move(stream_);
-    }
+    beast::ssl_stream<beast::tcp_stream> releaseStream() noexcept;
 
     /// \brief Start the TCP Session.
     void run();

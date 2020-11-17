@@ -34,17 +34,11 @@ class SSLHttpSession
     ~SSLHttpSession();
 
     /// \brief Return the underlying TCP stream.
-    beast::ssl_stream<beast::tcp_stream>& stream() noexcept
-    {
-        return stream_;
-    }
+    beast::ssl_stream<beast::tcp_stream>& stream() noexcept;
 
     /// \brief Returns and moves ownership of the underlying TCP stream to the
     /// caller.
-    beast::ssl_stream<beast::tcp_stream> releaseStream() noexcept
-    {
-        return std::move(stream_);
-    }
+    beast::ssl_stream<beast::tcp_stream> releaseStream() noexcept;
 
     /// \brief Starts the SSL HTTP Session.
     void run();

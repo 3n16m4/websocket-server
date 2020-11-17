@@ -53,7 +53,7 @@ class DetectSession
                     /// TODO: handle...
                     return;
                 }
-                self->onDetect(result);
+                self->onDetectSSL(result);
             });
     }
 

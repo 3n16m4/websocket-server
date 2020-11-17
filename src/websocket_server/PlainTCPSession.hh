@@ -22,23 +22,14 @@ class PlainTCPSession
     ~PlainTCPSession();
 
     /// \brief Return the underlying TCP stream.
-    beast::tcp_stream& stream() noexcept
-    {
-        return stream_;
-    }
+    beast::tcp_stream& stream() noexcept;
 
     /// \brief Returns and moves ownership of the underlying TCP stream to the
     /// caller.
-    beast::tcp_stream releaseStream() noexcept
-    {
-        return std::move(stream_);
-    }
+    beast::tcp_stream releaseStream() noexcept;
 
     /// \brief Starts the TCP Session.
-    void run()
-    {
-        this->doRead();
-    }
+    void run();
 
     /// \brief Ends the TCP Session.
     /// \note Called by the base class.

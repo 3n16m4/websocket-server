@@ -32,16 +32,10 @@ class SharedState
   public:
     /// \brief Constructor.
     /// \param _docRoot The document resources directory.
-    SharedState(std::string _docRoot)
-        : docRoot_(std::move(_docRoot))
-    {
-    }
+    SharedState(std::string _docRoot);
 
     /// \brief Returns the document root.
-    std::string const& docRoot() const noexcept
-    {
-        return docRoot_;
-    }
+    std::string const& docRoot() const noexcept;
 
     /// \brief Join a websocket session and insert it into the list.
     /// \tparam SessionType The SessionType can either be PlainWebSocketSession

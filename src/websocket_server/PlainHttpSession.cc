@@ -18,12 +18,27 @@ PlainHttpSession::~PlainHttpSession()
     LOG_DEBUG("PlainHttpSession::~PlainHttpSession\n");
 }
 
+beast::tcp_stream& PlainHttpSession::stream() noexcept
+{
+    return stream_;
+}
+
+beast::tcp_stream PlainHttpSession::releaseStream() noexcept
+{
+    return std::move(stream_);
+}
+
+void PlainHttpSession::run()
+{
+    this->doRead();
+}
+
 void PlainHttpSession::disconnect()
 {
     beast::error_code ec;
     stream_.socket().shutdown(tcp::socket::shutdown_send, ec);
 
     if (ec) {
-        /// TODO: handle properly
+        LOG_ERROR("shutdown error: {}\n", ec.message());
     }
 }
