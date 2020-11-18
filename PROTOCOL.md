@@ -101,7 +101,7 @@ typedef struct handshake_ack_packet {
 // Handshake Not Acknowledged Packet. (from server)
 // Server will close the remote connection.
 // Header: 0x02
-// Size: 1 byte
+// Size: 2 bytes
 typedef struct handshake_nak_packet {
     uint8_t header;
     uint8_t reason; // handshake_reason
