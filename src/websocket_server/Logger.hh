@@ -148,24 +148,6 @@ class Logger final
         log(msg, _severity);
     }
 
-    static void setColorMode()
-    {
-#ifdef _WIN32
-        if (HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-            hOut != INVALID_HANDLE_VALUE) {
-            DWORD dwMode = 0;
-            if (!GetConsoleMode(hOut, &dwMode)) {
-                return;
-            }
-
-            dwMode |= 0x0004;
-            if (!SetConsoleMode(hOut, dwMode)) {
-                return;
-            }
-        }
-#endif
-    }
-
     std::string filename_;
     bool console_{true};
     std::ofstream fileStream_;
