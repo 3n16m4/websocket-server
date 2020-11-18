@@ -3,6 +3,8 @@
 
 #include "websocket_server/asiofwd.hh"
 #include "websocket_server/WebSocketSessionFactory.hh"
+#include "websocket_server/PlainWebSocketSession.hh"
+#include "websocket_server/SSLWebSocketSession.hh"
 #include "websocket_server/SharedState.hh"
 #include "websocket_server/Common.hh"
 #include "websocket_server/Logger.hh"
@@ -15,6 +17,7 @@
 #include <boost/beast/http/file_body.hpp>
 #include <boost/beast/http/empty_body.hpp>
 #include <boost/beast/http/read.hpp>
+#include <boost/beast/http/write.hpp>
 #include <boost/beast/websocket/rfc6455.hpp>
 #include <boost/beast/version.hpp>
 
@@ -171,7 +174,7 @@ class HttpSession
 
             // Create the WebSocket session and take ownership of the underlying
             // socket.
-            return make_websocket_session(derived().releaseStream())
+            return make_websocket_session(derived().releaseStream(), state_)
                 ->run(std::move(parser_->release()));
         }
 

@@ -7,6 +7,9 @@
 #include "websocket_server/Logger.hh"
 
 #include <boost/beast/core/buffers_to_string.hpp>
+#include <boost/beast/core/error.hpp>
+#include <boost/beast/core/stream_traits.hpp>
+#include <boost/beast/core/flat_buffer.hpp>
 #include <boost/asio/read.hpp>
 #include <boost/asio/write.hpp>
 

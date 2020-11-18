@@ -7,19 +7,23 @@
 #include <boost/beast/websocket/stream.hpp>
 
 namespace amadeus {
+class SharedState;
 class PlainWebSocketSession
     : public WebSocketSession<PlainWebSocketSession>
     , public std::enable_shared_from_this<PlainWebSocketSession>
 {
   private:
+    /// The underlying WebSocket TCP stream.
     websocket::stream<beast::tcp_stream> ws_;
 
   public:
-    /// \brief Constructor. Creates the plain session.
-    explicit PlainWebSocketSession(beast::tcp_stream&& _stream)
-        : ws_(std::move(_stream))
-    {
-    }
+    /// \brief Constructor. Creates the Plain WebSocketSession.
+    explicit PlainWebSocketSession(beast::tcp_stream&& _stream,
+                                   std::shared_ptr<SharedState> const& _state);
+
+    /// \brief Returns the underlying WebSocket stream.
+    /// \note Called by the base class.
+    websocket::stream<beast::tcp_stream>& stream() noexcept;
 };
 } // namespace amadeus
 
