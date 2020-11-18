@@ -100,6 +100,7 @@ typedef struct handshake_ack_packet {
 
 // Handshake Not Acknowledged Packet. (from server)
 // Server will close the remote connection.
+// Explanation: The reason is described in the 'reason' field flag: example: 3, which means REASON_STATION_ID_ALREADY & REASON_UUID_FORMAT are set.
 // Header: 0x02
 // Size: 2 bytes
 typedef struct handshake_nak_packet {
@@ -108,8 +109,9 @@ typedef struct handshake_nak_packet {
 } handshake_nak_packet_t;
 
 typedef enum handshake_reason {
-    REASON_STATION_ID_ALREADY = 0, // StationId was already assigned on the server.
-    REASON_MALFORMED = 1,          // Handshake data was malformed (wrong UUID).
+    REASON_STATION_ID_ALREADY = 1, // StationId was already assigned on the server.
+    REASON_UUID_FORMAT        = 2, // Wrong UUID format.
+    REASON_UUID_ALREADY       = 4, // The UUID already exists.
 } handshake_reason_t;
 
 // Ping packet. (from server)
