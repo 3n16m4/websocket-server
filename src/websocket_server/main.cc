@@ -10,6 +10,7 @@
 #include <boost/container/small_vector.hpp>
 
 #include <thread>
+#include <ratio>
 
 using namespace amadeus;
 
@@ -70,9 +71,13 @@ int main(int argc, char* argv[])
     signals.async_wait(
         [&io](boost::system::error_code const& error, int signal_number) {
             // Stop the io_context and all of its associated handlers.
+            auto const start = std::chrono::steady_clock::now();
             io.stop();
-            LOG_INFO("Exited with signal {} and error: {}\n", signal_number,
-                     error.message());
+            auto const diff = std::chrono::duration<double, std::milli>(
+                                  std::chrono::steady_clock::now() - start)
+                                  .count();
+            LOG_INFO("Exited with signal {} and error: {}. Took {} ms.\n",
+                     signal_number, error.message(), diff);
         });
 
     // Run the io_context for the specified amount of threads - 1.
