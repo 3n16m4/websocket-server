@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <thread>
+#include <filesystem>
 
 using namespace amadeus;
 
@@ -11,7 +12,7 @@ void CommandLineInterface::parse(int _argc, char* _argv[])
     if (_argc != 6) {
         throw std::invalid_argument(
             "Usage: ./websocket_server <address> "
-            "<port> <threads>.\nExample: ./websocket_server 127.0.0.1 8080 "
+            "<port> <threads>.\nExample: ./websocket-server 127.0.0.1 8080 "
             "8081 /www 8\nYou may also set <threads> to 0 to enable full "
             "utilization of the hardware threads.");
     }
@@ -23,5 +24,12 @@ void CommandLineInterface::parse(int _argc, char* _argv[])
 
     if (threads == 0) {
         threads = std::thread::hardware_concurrency();
+    }
+
+    namespace fs = std::filesystem;
+
+    if (!fs::exists(fs::path(docRoot))) {
+        throw std::invalid_argument("The given document root '" + docRoot +
+                                    "' does not exist.");
     }
 }
