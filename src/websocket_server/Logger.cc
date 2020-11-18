@@ -3,6 +3,10 @@
 #include <chrono>
 #include <ostream>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 using namespace amadeus;
 using namespace std::string_view_literals;
 
