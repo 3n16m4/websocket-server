@@ -132,6 +132,21 @@ typedef struct weather_status_packet {
 
 ### Frontend
 ------------------------
+> Sending a weather status request:
+```json
+{
+    "id": 0,
+    "stationId": 1
+}
+```
 
-- ...
-
+> Receiving a weather status response:
+```json
+{
+    "id": 0,
+    "stationId": 1,
+    "temperature": 27.4,
+    "humidity": 44.2,
+    "time": "2021-01-01 14:03:55"
+}
+```
