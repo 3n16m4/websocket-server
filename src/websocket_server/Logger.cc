@@ -3,6 +3,10 @@
 #include <chrono>
 #include <ostream>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 using namespace amadeus;
 using namespace std::string_view_literals;
 
@@ -46,6 +50,24 @@ LogMessage::LogMessage(LoggerSeverity _severity, std::string_view const& _msg)
 }
 } // namespace details
 } // namespace amadeus
+
+#ifdef _WIN32
+static void setColorMode()
+{
+    if (HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+        hOut != INVALID_HANDLE_VALUE) {
+        DWORD dwMode = 0;
+        if (!GetConsoleMode(hOut, &dwMode)) {
+            return;
+        }
+
+        dwMode |= 0x0004;
+        if (!SetConsoleMode(hOut, dwMode)) {
+            return;
+        }
+    }
+}
+#endif
 
 Logger::Logger(std::string const& _filename, bool _console /*= true*/)
     : filename_(_filename)

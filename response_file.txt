@@ -1,4 +1,5 @@
 boost-asio
 boost-beast
+fmt
 nlohmann-json
 gtest

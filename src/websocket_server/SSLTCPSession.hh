@@ -3,7 +3,7 @@
 
 #include "websocket_server/TCPSession.hh"
 
-#include <boost/asio/ssl/stream.hpp>
+#include <boost/beast/ssl/ssl_stream.hpp>
 #include <boost/beast/core/tcp_stream.hpp>
 
 /// TODO: Inherit from 'BasicSSLSession' which already implements functions like

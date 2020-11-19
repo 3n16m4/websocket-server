@@ -20,9 +20,22 @@ A fully asynchronous, multi-threaded, lightweight WebSocket server written in C+
 - nlohmann_json
 - fmtlib
 
-> **ProTip:** Use Arch Linux to grab the latest GCC compiler.
+> **ProTip:** Use Arch Linux to grab the latest compilers.
 
 ## Getting started
+### Using the Docker image (recommended)
+The easiest way to setup a working webserver is to use the provided Dockerfile.
+
+*GNU / Linux and macOS*
+```
+> ./run.sh
+```
+
+*Windows*
+```
+> run.bat
+```
+
 ### Building the dependencies
 Clone the [vcpkg repo](https://github.com/microsoft/vcpkg) and booststrap it.
 ```
@@ -33,23 +46,28 @@ Clone the [vcpkg repo](https://github.com/microsoft/vcpkg) and booststrap it.
 ```
 LINUX> ./bootstrap-vcpkg.sh
 LINUX> ./vcpkg integrate install
+LINUX> echo >> "export PATH=/${HOME}/src/vcpkg/:$PATH" ~/.bashrc
+LINUX> echo >> "export VCPKG_ROOT=/$HOME/src/vcpkg" ~/.bashrc
 LINUX> cd <websocket-server>
-LINUX> ./vcpkg --triplet x64-linux install @response_file.txt --clean-after-build
+LINUX> vcpkg --triplet x64-linux install @response_file.txt --clean-after-build
 ```
 
 *macOS*
 ```
 UNIX> ./bootstrap-vcpkg.sh
 UNIX> ./vcpkg integrate install
+UNIX> echo >> "export PATH=/${HOME}/src/vcpkg/:$PATH" ~/.zshrc
+UNIX> echo >> "export VCPKG_ROOT=/$HOME/src/vcpkg" ~/.zshrc
 UNIX> cd <websocket-server>
-UNIX> ./vcpkg --triplet x64-osx install @response_file.txt --clean-after-build
+UNIX> vcpkg --triplet x64-osx install @response_file.txt --clean-after-build
 ```
 *Windows*
 ```
 PS> .\bootstrap-vcpkg.bat
 PS> .\vcpkg integrate install
+PS> $env:Path += ";C:\Users\YourUserName\src\vcpkg"
 PS> cd <websocket-server>
-PS> .\vcpkg --triplet x64-windows install @response_file.txt --clean-after-build
+PS> vcpkg --triplet x64-windows install @response_file.txt --clean-after-build
 ```
 
 ### Installing the prerequisites
@@ -60,7 +78,7 @@ sudo pacman -S git cmake ninja base-devel clang
 
 *Windows*
 
-Just install the latest [Visual Studio](https://visualstudio.microsoft.com/vs/) build to get the latest stable release of MSVC.
+Just grab the latest [Visual Studio](https://visualstudio.microsoft.com/vs/) build to get the latest stable release of MSVC.
 
 cmake, ninja and git should be included in Visual Studio >= 2019.
 
