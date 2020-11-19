@@ -14,7 +14,7 @@
 /// Each PacketHandler implementation however, must override the handle
 /// method and call its specific handlers inside it.
 namespace amadeus {
-enum class RequestType;
+enum class PacketType;
 class PacketHandler
 {
   public:
@@ -35,7 +35,7 @@ class PacketHandler
     /// The return type of a handler.
     using HandlerReturnType = std::pair<ResultType, std::size_t>;
     /// The underlying PacketId Type.
-    using PacketIdType = std::underlying_type<RequestType>::type;
+    using PacketIdType = std::underlying_type<PacketType>::type;
     /// The immutable data from the network buffer.
     using BufferView = asio::const_buffer;
 

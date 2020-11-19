@@ -117,7 +117,7 @@ typedef enum handshake_reason {
 // Ping packet. (from server)
 // Header: 0x03
 // Size: 1 byte
-typedef enum ping_packet {
+typedef struct ping_packet {
     uint8_t header;
 } ping_packet_t;
 
