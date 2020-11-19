@@ -13,6 +13,8 @@ find_package(OpenSSL REQUIRED)
 
 set(SRC_FILES
     main.cc
+    PacketHandler.hh
+    PacketHandler.cc
     CommandLineInterface.hh
     CommandLineInterface.cc
     ServerCertificate.hh

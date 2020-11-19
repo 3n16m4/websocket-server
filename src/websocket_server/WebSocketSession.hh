@@ -20,6 +20,8 @@
 #include <string>
 #include <string_view>
 
+/// TODO: beast::make_printable
+
 namespace amadeus {
 /// CRTP is used here to avoid code duplication and virtual function calls.
 /// This is not only beneficial for performance but also to allow SSL websocket
