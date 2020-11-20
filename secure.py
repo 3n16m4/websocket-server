@@ -4,14 +4,15 @@ import ssl
 from sys import argv
 
 HOSTNAME = 'localhost'
-PORT = 81
+#PORT = 81
+PORT = 8081
 
 def main():
     # PROTOCOL_TLS_CLIENT requires valid cert chain and hostname
     # context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
     context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
     context.verify_mode = ssl.CERT_REQUIRED
-    context.load_verify_locations('/home/memcpy/src/websocket-server/cabundle.pem')
+    context.load_verify_locations('cabundle.pem')
     context.check_hostname = False
 
     print('Protocol version: {}'.format(context.protocol))

@@ -10,10 +10,10 @@
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/stream_traits.hpp>
 #include <boost/beast/core/flat_buffer.hpp>
+#include <boost/beast/core/make_printable.hpp>
 #include <boost/asio/read.hpp>
 #include <boost/asio/write.hpp>
 
-#include <array>
 #include <memory>
 #include <stdexcept>
 #include <string_view>
@@ -47,14 +47,8 @@ class TCPSession
         beast::get_lowest_layer(derived().stream())
             .expires_after(std::chrono::seconds(Timeout));
 
-        LOG_DEBUG("{} {}\n", _error.message(), _bytesTransferred);
-        LOG_DEBUG("Message: {}\n", beast::buffers_to_string(buffer_.data()));
-
-        asio::async_write(derived().stream(), buffer_,
-                          [self = derived().shared_from_this()](
-                              auto&& ec, auto&& bytes_transferred) {
-                              self->onWrite(ec, bytes_transferred);
-                          });
+        /// TODO: Parse the packet (id, body)
+        /// pass the id and body to the PacketHandler.
     }
 
     /// \brief CompletionToken for the asynchronous write operation.
@@ -88,6 +82,8 @@ class TCPSession
         beast::get_lowest_layer(derived().stream())
             .expires_after(std::chrono::seconds(Timeout));
 
+        LOG_DEBUG("Received: {}\n", beast::buffers_to_string(buffer_.data()));
+
         asio::async_write(derived().stream(), buffer_,
                           [self = derived().shared_from_this()](
                               auto&& ec, auto&& bytes_transferred) {
@@ -103,7 +99,6 @@ class TCPSession
 
   protected:
     /// The underlying buffer for incoming TCP requests.
-    // std::array<char, 1024> buffer_;
     beast::flat_buffer buffer_;
 };
 } // namespace amadeus

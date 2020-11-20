@@ -8,6 +8,7 @@
 #include <unordered_set>
 #include <vector>
 
+/// TODO: Join TCP Connections here.
 namespace amadeus {
 /// \brief This class is responsible for keeping track of all connected
 /// websocket sessions. It provides functions for joining, leaving sessions and

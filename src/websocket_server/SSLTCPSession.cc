@@ -63,16 +63,40 @@ void SSLTCPSession::onHandshake(beast::error_code const& _error,
     // Consume the portion of the buffer used by the handshake
     buffer_.consume(_bytesTransferred);
 
-    // this->doRead();
+    /*
+    Beast’s detect_ssl is designed to work with beast’s http and websocket
+    stream types. As you have seen, it is destructive with respect to the underlying
+    tcp/ssl receive buffers.
 
-    auto self(shared_from_this());
-    stream_.async_read_some(
+    If we wanted ssl detection for a standard asio socket we have two options:
+
+    1 write a version of detect_ssl that uses msg_peek when reading the underlying
+    socket so that the data is not actually consumed from the socket when read.
+
+    2 transfer the contents of the flat_buffer to an asio dynamic_buffer_v2 and use
+    that buffer for subsequent asio operations on the stream.
+
+    Beast and asio dynamic buffers are not currently compatible. I have a branch
+    which is working towards unification but it’s not ready yet.
+    */
+    asio::async_read(stream_, asio::buffer(buffer_.data(), buffer_.size()),
+                     [this, self = shared_from_this()](auto&& e, auto&& l) {
+                         LOG_DEBUG("Received: {}\n", e.message());
+                     });
+    /*stream_.async_read_some(
         boost::asio::buffer(data_),
         [this, self](const boost::system::error_code& ec, std::size_t length) {
             if (!ec) {
-                doWrite(length);
+                LOG_DEBUG("Received: {}\n", data_);
+                this->doRead();
             }
-        });
+        });*/
+
+    /*asio::async_read(
+        stream_, buffer_,
+        [this, self = shared_from_this()](auto&& ec, auto&& bytes_transferred) {
+            this->doRead();
+        });*/
 }
 
 void SSLTCPSession::onShutdown(beast::error_code const& _error)
@@ -86,23 +110,4 @@ void SSLTCPSession::onShutdown(beast::error_code const& _error)
     stream_.next_layer().close();
 
     LOG_DEBUG("SSLTCPSession gracefully shut down.\n");
-}
-
-void SSLTCPSession::onWrite(beast::error_code const& _error,
-                            std::size_t _bytesTransferred)
-{
-}
-
-void SSLTCPSession::doWrite(std::size_t _bytes)
-{
-    auto self(shared_from_this());
-    asio::async_write(stream_, boost::asio::buffer(data_, _bytes),
-                      [this, self, _bytes](const boost::system::error_code& ec,
-                                           std::size_t length) {
-                          if (!ec) {
-                              LOG_DEBUG("{} {}\n", ec.message(), _bytes);
-                              std::string_view const message{data_, _bytes};
-                              LOG_DEBUG("Wrote: {}\n", message);
-                          }
-                      });
 }

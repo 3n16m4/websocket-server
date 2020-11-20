@@ -28,11 +28,6 @@ class SSLTCPSession
     /// \brief CompletionToken for the asynchronous SSL shutdown.
     void onShutdown(beast::error_code const& _error);
 
-    void onWrite(beast::error_code const& _error,
-                 std::size_t _bytesTransferred);
-
-    void doWrite(std::size_t _bytes);
-
   public:
     /// \brief Create a secure TCP Session.
     SSLTCPSession(beast::tcp_stream&& _stream, ssl::context& _ctx,

@@ -20,8 +20,6 @@
 #include <string>
 #include <string_view>
 
-/// TODO: beast::make_printable
-
 namespace amadeus {
 /// CRTP is used here to avoid code duplication and virtual function calls.
 /// This is not only beneficial for performance but also to allow SSL websocket
@@ -50,10 +48,10 @@ class WebSocketSession
         auto& ws = derived().stream();
 
         // Set the timeout for the websocket and enable ping packets to be sent.
-        websocket::stream_base::timeout const opt{
+        websocket::stream_base::timeout const timeout{
             std::chrono::seconds(HandshakeTimeout), std::chrono::seconds(10s),
             true};
-        ws.set_option(opt);
+        ws.set_option(timeout);
 
         // Set a decorator to change the user-agent of the handshake
         ws.set_option(websocket::stream_base::decorator(
@@ -78,11 +76,9 @@ class WebSocketSession
 
             // Register control frame callback for pong.
             auto& ws = derived().stream();
-            ws.control_callback(
-                [](websocket::frame_type _kind, beast::string_view _payload) {
-                    LOG_DEBUG("Received control frame: {} {}\n",
-                              static_cast<int>(_kind), _payload);
-                });
+            ws.control_callback([this](auto&& _kind, auto&& _payload) {
+                onControlMessage(_kind, _payload);
+            });
 
             // Read a message
             doRead();
@@ -90,7 +86,7 @@ class WebSocketSession
     }
 
     void onControlMessage(websocket::frame_type _kind,
-                          std::string_view _payload)
+                          beast::string_view _payload)
     {
         LOG_DEBUG("Received control frame: {} {}\n", static_cast<int>(_kind),
                   _payload);

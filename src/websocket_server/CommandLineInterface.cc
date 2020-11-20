@@ -1,5 +1,7 @@
 #include "websocket_server/CommandLineInterface.hh"
 
+#include <fmt/format.h>
+
 #include <stdexcept>
 #include <thread>
 #include <filesystem>
@@ -10,11 +12,12 @@ void CommandLineInterface::parse(int _argc, char* _argv[])
 {
     // ./websocket_server <address> <httpPort> <tcpPort> <docroot> <threads>
     if (_argc != 6) {
-        throw std::invalid_argument(
-            "Usage: ./websocket_server <address> "
-            "<port> <threads>.\nExample: ./websocket-server 127.0.0.1 8080 "
+        throw std::invalid_argument(fmt::format(
+            "Usage: {0} <address> "
+            "<port> <threads>.\nExample: {0} 127.0.0.1 8080 "
             "8081 /www 8\nYou may also set <threads> to 0 to enable full "
-            "utilization of the hardware threads.");
+            "utilization of the hardware threads.",
+            _argv[0]));
     }
     ip = asio::ip::make_address(_argv[1]);
     httpPort = static_cast<decltype(httpPort)>(std::atoi(_argv[2]));
