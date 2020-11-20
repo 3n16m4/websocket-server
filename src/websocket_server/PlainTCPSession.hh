@@ -16,7 +16,7 @@ class PlainTCPSession
 
   public:
     /// \brief Create a plain TCP Session.
-    PlainTCPSession(beast::tcp_stream&& _stream, beast::flat_buffer&& _buffer,
+    PlainTCPSession(tcp::socket&& _socket,
                     std::shared_ptr<SharedState> const& _state);
 
     ~PlainTCPSession();

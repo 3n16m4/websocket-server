@@ -19,12 +19,6 @@ set(SRC_FILES
     CommandLineInterface.cc
     ServerCertificate.hh
     ServerCertificate.cc
-    DetectSession.hh
-    DetectSession.cc
-    DetectHttpSession.hh
-    DetectHttpSession.cc
-    DetectTCPSession.hh
-    DetectTCPSession.cc
     SharedState.hh
     SharedState.cc
     Listener.hh

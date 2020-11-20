@@ -3,11 +3,10 @@
 
 using namespace amadeus;
 
-PlainTCPSession::PlainTCPSession(beast::tcp_stream&& _stream,
-                                 beast::flat_buffer&& _buffer,
+PlainTCPSession::PlainTCPSession(tcp::socket&& _socket,
                                  std::shared_ptr<SharedState> const& _state)
-    : TCPSession<PlainTCPSession>(std::move(_buffer), _state)
-    , stream_(std::move(_stream))
+    : TCPSession<PlainTCPSession>(_state)
+    , stream_(std::move(_socket))
 {
     LOG_DEBUG("PlainTCPSession::PlainTCPSession()\n");
 }

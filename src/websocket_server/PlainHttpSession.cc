@@ -4,11 +4,10 @@
 using namespace amadeus;
 
 /// \brief Create a plain HTTP Session.
-PlainHttpSession::PlainHttpSession(beast::tcp_stream&& _stream,
-                                   beast::flat_buffer&& _buffer,
+PlainHttpSession::PlainHttpSession(tcp::socket&& _socket,
                                    std::shared_ptr<SharedState> const& _state)
-    : HttpSession<PlainHttpSession>(std::move(_buffer), _state)
-    , stream_(std::move(_stream))
+    : HttpSession<PlainHttpSession>(_state)
+    , stream_(std::move(_socket))
 {
     LOG_DEBUG("PlainHttpSession::PlainHttpSession\n");
 }

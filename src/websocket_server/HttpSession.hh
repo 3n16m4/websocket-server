@@ -138,6 +138,10 @@ void handle_request(beast::string_view doc_root,
 template <class Derived>
 class HttpSession
 {
+  protected:
+    /// The underlying buffer for incoming HTTP Requests.
+    beast::flat_buffer buffer_;
+
   private:
     /// The shared state.
     std::shared_ptr<SharedState> state_;
@@ -222,10 +226,8 @@ class HttpSession
 
   public:
     /// \brief Constructor.
-    HttpSession(beast::flat_buffer&& _buffer,
-                std::shared_ptr<SharedState> const& _state)
-        : buffer_(std::move(_buffer))
-        , state_(_state)
+    HttpSession(std::shared_ptr<SharedState> const& _state)
+        : state_(_state)
     {
     }
 
@@ -253,10 +255,6 @@ class HttpSession
     {
         throw std::runtime_error("NotImplemented");
     }
-
-  protected:
-    /// The underlying buffer for incoming HTTP Requests.
-    beast::flat_buffer buffer_;
 };
 } // namespace amadeus
 

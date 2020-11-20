@@ -16,8 +16,12 @@ struct CommandLineInterface
     asio::ip::address ip;
     /// The HTTP port the server will listen to.
     std::uint16_t httpPort;
+    /// The HTTPS port the server will listen to.
+    std::uint16_t httpsPort;
     /// The TCP port the server will listen to.
     std::uint16_t tcpPort;
+    /// The secure TCP port the server will listen to.
+    std::uint16_t tcpSecurePort;
     /// The document root of all the resources the server will serve.
     std::string docRoot;
     /// The amount of threads the server will utilize.

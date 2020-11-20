@@ -16,7 +16,7 @@ class PlainHttpSession
 
   public:
     /// \brief Create a plain HTTP Session.
-    PlainHttpSession(beast::tcp_stream&& _stream, beast::flat_buffer&& _buffer,
+    PlainHttpSession(tcp::socket&& _socket,
                      std::shared_ptr<SharedState> const& _state);
 
     ~PlainHttpSession();

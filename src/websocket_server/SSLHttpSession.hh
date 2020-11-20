@@ -27,8 +27,7 @@ class SSLHttpSession
     void onShutdown(beast::error_code const& _error);
 
   public:
-    SSLHttpSession(beast::tcp_stream&& _stream, ssl::context& _ctx,
-                   beast::flat_buffer&& _buffer,
+    SSLHttpSession(tcp::socket&& _socket, ssl::context& _ctx,
                    std::shared_ptr<SharedState> const& _state);
 
     ~SSLHttpSession();

@@ -1,7 +1,9 @@
 #include "websocket_server/CommandLineInterface.hh"
 #include "websocket_server/Logger.hh"
-#include "websocket_server/HttpListener.hh"
-#include "websocket_server/TCPListener.hh"
+#include "websocket_server/PlainTCPListener.hh"
+#include "websocket_server/PlainHttpListener.hh"
+#include "websocket_server/SSLTCPListener.hh"
+#include "websocket_server/SSLHttpListener.hh"
 #include "websocket_server/ServerCertificate.hh"
 
 #include <boost/asio/io_context.hpp>
@@ -48,16 +50,28 @@ int main(int argc, char* argv[])
     }
 
     // Create and launch the HTTP listener.
-    HttpListener httpListener{io, ctx, tcp::endpoint{cli.ip, cli.httpPort},
-                              std::make_shared<SharedState>(cli.docRoot)};
+    PlainHttpListener plainHttpListener{
+        io, tcp::endpoint{cli.ip, cli.httpPort},
+        std::make_shared<SharedState>(cli.docRoot)};
 
     // Create and launch the TCP listener.
-    TCPListener tcpListener{io, ctx, tcp::endpoint{cli.ip, cli.tcpPort},
-                            std::make_shared<SharedState>(cli.docRoot)};
+    PlainTCPListener plainTCPListener{
+        io, tcp::endpoint{cli.ip, cli.tcpPort},
+        std::make_shared<SharedState>(cli.docRoot)};
+
+    SSLTCPListener sslTCPListener{io, ctx,
+                                  tcp::endpoint{cli.ip, cli.tcpSecurePort},
+                                  std::make_shared<SharedState>(cli.docRoot)};
+
+    SSLHttpListener sslHttpListener{io, ctx,
+                                    tcp::endpoint{cli.ip, cli.httpsPort},
+                                    std::make_shared<SharedState>(cli.docRoot)};
 
     try {
-        httpListener.run();
-        tcpListener.run();
+        plainHttpListener.run();
+        plainTCPListener.run();
+        sslTCPListener.run();
+        sslHttpListener.run();
     } catch (boost::system::system_error const& e) {
         LOG_FATAL("{}\n", e.what());
         io.stop();
