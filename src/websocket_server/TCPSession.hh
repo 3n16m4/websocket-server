@@ -6,14 +6,12 @@
 #include "websocket_server/Common.hh"
 #include "websocket_server/Logger.hh"
 
-#include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/stream_traits.hpp>
-#include <boost/beast/core/flat_buffer.hpp>
-#include <boost/beast/core/make_printable.hpp>
 #include <boost/asio/read.hpp>
 #include <boost/asio/write.hpp>
 
+#include <array>
 #include <memory>
 #include <stdexcept>
 #include <string_view>
@@ -29,6 +27,8 @@ class TCPSession
   private:
     /// The shared state.
     std::shared_ptr<SharedState> state_;
+    /// The underlying buffer for incoming TCP requests.
+    std::array<char, 1024> buffer_;
 
     /// \brief Helper function to access the derived class.
     Derived& derived()
@@ -39,13 +39,20 @@ class TCPSession
     /// \brief CompletionToken for the asynchronous read operation.
     void onRead(beast::error_code const& _error, std::size_t _bytesTransferred)
     {
-        if (_error || _bytesTransferred == 0) {
+        if (_error) {
             LOG_ERROR("Read error: {}\n", _error.message());
             return;
         }
 
         beast::get_lowest_layer(derived().stream())
             .expires_after(std::chrono::seconds(Timeout));
+
+        asio::async_write(derived().stream(),
+                          asio::buffer(buffer_.data(), _bytesTransferred),
+                          [self = derived().shared_from_this()](
+                              auto&& ec, auto&& bytes_transferred) {
+                              self->onWrite(ec, bytes_transferred);
+                          });
 
         /// TODO: Parse the packet (id, body)
         /// pass the id and body to the PacketHandler.
@@ -54,23 +61,17 @@ class TCPSession
     /// \brief CompletionToken for the asynchronous write operation.
     void onWrite(beast::error_code const& _error, std::size_t _bytesTransferred)
     {
-        LOG_DEBUG("Sent {} {} bytes\n",
-                  beast::buffers_to_string(buffer_.data()), _bytesTransferred);
+        std::string_view const message{buffer_.data(), _bytesTransferred};
+        LOG_DEBUG("Sent {} {} bytes\n", message.data(), message.size());
 
         // read another packet.
-        asio::async_read(derived().stream(), buffer_,
-                         [self = derived().shared_from_this()](
-                             auto&& ec, auto&& bytes_transferred) {
-                             self->onRead(ec, bytes_transferred);
-                         });
+        doRead();
     }
 
   public:
     /// \brief Constructor.
-    TCPSession(beast::flat_buffer&& _buffer,
-               std::shared_ptr<SharedState> const& _state)
-        : buffer_(std::move(_buffer))
-        , state_(_state)
+    TCPSession(std::shared_ptr<SharedState> const& _state)
+        : state_(_state)
     {
     }
 
@@ -82,13 +83,11 @@ class TCPSession
         beast::get_lowest_layer(derived().stream())
             .expires_after(std::chrono::seconds(Timeout));
 
-        LOG_DEBUG("Received: {}\n", beast::buffers_to_string(buffer_.data()));
-
-        asio::async_write(derived().stream(), buffer_,
-                          [self = derived().shared_from_this()](
-                              auto&& ec, auto&& bytes_transferred) {
-                              self->onWrite(ec, bytes_transferred);
-                          });
+        derived().stream().async_read_some(
+            asio::buffer(buffer_), [self = derived().shared_from_this()](
+                         auto&& ec, auto&& bytes_transferred) {
+                self->onRead(ec, bytes_transferred);
+            });
     }
 
     /// \brief Starts the asynchronous write operation.
@@ -96,10 +95,6 @@ class TCPSession
     {
         throw std::runtime_error("NotImplemented");
     }
-
-  protected:
-    /// The underlying buffer for incoming TCP requests.
-    beast::flat_buffer buffer_;
 };
 } // namespace amadeus
 

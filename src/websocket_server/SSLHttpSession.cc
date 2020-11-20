@@ -4,11 +4,10 @@
 
 using namespace amadeus;
 
-SSLHttpSession::SSLHttpSession(beast::tcp_stream&& _stream, ssl::context& _ctx,
-                               beast::flat_buffer&& _buffer,
+SSLHttpSession::SSLHttpSession(tcp::socket&& _socket, ssl::context& _ctx,
                                std::shared_ptr<SharedState> const& _state)
-    : HttpSession<SSLHttpSession>(std::move(_buffer), _state)
-    , stream_(std::move(_stream), _ctx)
+    : HttpSession<SSLHttpSession>(_state)
+    , stream_(std::move(_socket), _ctx)
 {
     LOG_DEBUG("SSLHttpSession::SSLHttpSession()\n");
 }

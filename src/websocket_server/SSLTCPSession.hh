@@ -22,16 +22,14 @@ class SSLTCPSession
     char data_[1024];
 
     /// \brief CompletionToken for the asynchronous SSL handshake.
-    void onHandshake(beast::error_code const& _error,
-                     std::size_t _bytesTransferred);
+    void onHandshake(beast::error_code const& _error);
 
     /// \brief CompletionToken for the asynchronous SSL shutdown.
     void onShutdown(beast::error_code const& _error);
 
   public:
     /// \brief Create a secure TCP Session.
-    SSLTCPSession(beast::tcp_stream&& _stream, ssl::context& _ctx,
-                  beast::flat_buffer&& _buffer,
+    SSLTCPSession(tcp::socket&& _socket, ssl::context& _ctx,
                   std::shared_ptr<SharedState> const& _state);
 
     ~SSLTCPSession();
