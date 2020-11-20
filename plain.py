@@ -3,8 +3,7 @@ import socket
 from sys import argv
 
 HOSTNAME = 'localhost'
-PORT = 81
-#PORT = 8081
+PORT = 90
 
 def main():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
