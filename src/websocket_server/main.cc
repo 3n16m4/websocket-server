@@ -11,6 +11,8 @@
 #include <boost/asio/ssl/context.hpp>
 #include <boost/container/small_vector.hpp>
 
+#include <nlohmann/json.hpp>
+
 #include <thread>
 #include <ratio>
 
