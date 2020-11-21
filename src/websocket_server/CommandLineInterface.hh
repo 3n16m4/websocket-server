@@ -5,8 +5,12 @@
 
 #include <boost/asio/ip/address.hpp>
 
+#include <nlohmann/json.hpp>
+
 #include <cstdint>
 #include <string>
+
+using JSON = nlohmann::json;
 
 namespace amadeus {
 /// \brief A simple CLI for parsing the necessary options for the TCP Listener.
@@ -24,6 +28,8 @@ struct CommandLineInterface
     std::uint16_t tcpSecurePort;
     /// The document root of all the resources the server will serve.
     std::string docRoot;
+    /// The config file as a JSON object.
+    JSON config;
     /// The amount of threads the server will utilize.
     std::uint32_t threads;
 

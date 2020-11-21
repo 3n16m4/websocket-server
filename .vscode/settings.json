@@ -90,6 +90,7 @@
         "*.ipp": "cpp",
         "fstream": "cpp",
         "format": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "filesystem": "cpp"
     }
 }
