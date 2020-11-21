@@ -27,8 +27,8 @@ int main(int argc, char* argv[])
     CommandLineInterface cli;
     try {
         cli.parse(argc, argv);
-    } catch (std::runtime_error const& e) {
-        LOG_FATAL("{}\n", e.what());
+    } catch (std::exception const& e) {
+        LOG_ERROR("{}\n", e.what());
         return EXIT_FAILURE;
     }
 

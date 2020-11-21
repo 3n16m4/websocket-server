@@ -28,7 +28,7 @@ class TCPSession
     /// The shared state.
     std::shared_ptr<SharedState> state_;
     /// The underlying buffer for incoming TCP requests.
-    std::array<char, 1024> buffer_;
+    std::array<char, 1024> buffer_{};
 
     /// \brief Helper function to access the derived class.
     Derived& derived()
@@ -61,7 +61,7 @@ class TCPSession
     /// \brief CompletionToken for the asynchronous write operation.
     void onWrite(beast::error_code const& _error, std::size_t _bytesTransferred)
     {
-        std::string_view const message{buffer_.data(), _bytesTransferred};
+        std::string_view const message{buffer_.begin(), _bytesTransferred};
         LOG_DEBUG("Sent {} {} bytes\n", message.data(), message.size());
 
         // read another packet.
