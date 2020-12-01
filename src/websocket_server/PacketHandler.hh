@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <utility>
+#include <type_traits>
 
 /// \brief The PacketHandler for incoming µc-TCP requests.
 /// A PacketHandler can vary in its design and underlying data structure
@@ -14,7 +15,9 @@
 /// Each PacketHandler implementation however, must override the handle
 /// method and call its specific handlers inside it.
 namespace amadeus {
-enum class PacketType;
+namespace in {
+enum class PacketType : std::uint8_t;
+} // namespace in
 class PacketHandler
 {
   public:
@@ -35,22 +38,21 @@ class PacketHandler
     /// The return type of a handler.
     using HandlerReturnType = std::pair<ResultType, std::size_t>;
     /// The underlying PacketId Type.
-    using PacketIdType = std::underlying_type<PacketType>::type;
+    using PacketIdType = std::underlying_type<in::PacketType>::type;
     /// The immutable data from the network buffer.
     using BufferView = asio::const_buffer;
-
-    /// \brief Default constructor.
-    PacketHandler() = default;
-
-    /// \brief Default virtual destructor.
-    virtual ~PacketHandler() = default;
 
     /// \brief Parse some data. The enum return value is 'Good' when a
     /// complete request has been parsed, 'Bad' if the data is invalid,
     /// 'Indeterminate' when more data is required. The std::size_t return
     /// value indicates how much of the input has been consumed. See \ref
     /// HandlerReturnType for more details.
-    virtual HandlerReturnType handle(PacketIdType _id, BufferView _view) = 0;
+    HandlerReturnType handle(PacketIdType _id, BufferView const _view);
+
+  private:
+    HandlerReturnType handleHandshakePacket(BufferView const _view) const;
+    HandlerReturnType handlePongPacket(BufferView const _view) const;
+    HandlerReturnType handleWeatherStatusPacket(BufferView const _view) const;
 };
 } // namespace amadeus
 
