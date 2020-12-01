@@ -5,7 +5,7 @@ namespace amadeus {
 #pragma pack(push, 1)
 struct HandshakePacket
 {
-    std::uint8_t header;
+    std::uint8_t header{0x00};
 };
 #pragma pack(pop)
 } // namespace amadeus

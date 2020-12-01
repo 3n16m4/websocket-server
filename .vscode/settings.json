@@ -91,6 +91,9 @@
         "fstream": "cpp",
         "format": "cpp",
         "stack": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "valarray": "cpp",
+        "forward_list": "cpp",
+        "__functional_03": "cpp"
     }
 }
