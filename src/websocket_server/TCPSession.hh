@@ -55,12 +55,15 @@ class TCPSession
                             std::size_t _bytesTransferred)
     {
         if (_error == asio::error::eof ||
-            _error == asio::error::operation_aborted ||
-            _error == asio::error::connection_reset ||
-            _error == asio::error::connection_aborted) {
+            _error == asio::error::connection_reset) {
             /// TODO: onDisconnected
-            LOG_ERROR("Read error: Connection was closed by remote endpoint or "
-                      "timer.\n");
+            LOG_ERROR("Read error: Connection was closed by remote endpoint\n");
+            return;
+        }
+        if (_error == asio::error::operation_aborted ||
+            _error == asio::error::connection_aborted) {
+            LOG_ERROR("Read error: Connection was closed by remote endpoint "
+                      "due to a timeout.\n");
             return;
         }
         if (_error) {
@@ -102,8 +105,7 @@ class TCPSession
             numBytesLeft_ -= bytesParsed;
 
             using ResultType = PacketHandler::ResultType;
-            switch (status)
-            {
+            switch (status) {
             case ResultType::Good:
                 break;
             case ResultType::Bad:
