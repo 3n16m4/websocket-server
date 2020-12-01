@@ -6,6 +6,7 @@
 #include <string>
 #include <type_traits>
 #include <unordered_set>
+#include <unordered_map>
 #include <vector>
 
 /// TODO: Join TCP Connections here.
@@ -17,6 +18,9 @@ namespace amadeus {
 /// websocket session.
 class PlainWebSocketSession;
 class SSLWebSocketSession;
+class PlainTCPSession;
+class SSLTCPSession;
+enum class StationId;
 class SharedState
 {
   private:
@@ -28,6 +32,10 @@ class SharedState
     std::unordered_set<PlainWebSocketSession*> plain_sessions_;
     /// A set to track all ssl websockets.
     std::unordered_set<SSLWebSocketSession*> ssl_sessions_;
+    /// A hashmap for all plain tcp sessions bound to a unique stationId.
+    std::unordered_map<StationId, PlainTCPSession*> plain_tcp_sessions_;
+    /// A hashmap for all ssl tcp sessions bound to a unique stationId.
+    std::unordered_map<StationId, SSLTCPSession*> ssl_tcp_sessions_;
 
     /// \brief Returns a weak_ptr for a PlainWebSocketSession.
     std::weak_ptr<PlainWebSocketSession>
@@ -81,6 +89,11 @@ class SharedState
     /// \param _session The SSLWebSocketSession pointer.
     /// \remarks Thread-Safe.
     void join(SSLWebSocketSession* _session);
+
+    /// \brief Join a PlainTCPSession and insert it into the lsit.
+    /// \param _session The PlainTCPSession pointer.
+    /// \remarks Thread-Safe.
+    void join(StationId _id, PlainTCPSession* _session);
 
     /// \brief Leave a PlainWebSocketSession and erase it from the list.
     /// \param _session The PlainWebSocketSession pointer.
