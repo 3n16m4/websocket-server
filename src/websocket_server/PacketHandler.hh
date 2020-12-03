@@ -18,6 +18,7 @@ namespace amadeus {
 namespace in {
 enum class PacketType : std::uint8_t;
 } // namespace in
+class SharedState;
 class PacketHandler
 {
   public:
@@ -42,7 +43,10 @@ class PacketHandler
     /// The immutable data from the network buffer.
     using BufferView = asio::const_buffer;
 
-    /// \brief Parse some data. The enum return value is 'Good' when a
+	/// \brief Constructor.
+	explicit PacketHandler(std::shared_ptr<SharedState> const& _state);
+
+    // \brief Parse some data. The enum return value is 'Good' when a
     /// complete request has been parsed, 'Bad' if the data is invalid,
     /// 'Indeterminate' when more data is required. The std::size_t return
     /// value indicates how much of the input has been consumed. See \ref
@@ -50,6 +54,9 @@ class PacketHandler
     HandlerReturnType handle(PacketIdType _id, BufferView const _view);
 
   private:
+	/// The shared state.
+	std::shared_ptr<SharedState> state_;
+
     HandlerReturnType handleHandshakePacket(BufferView const _view) const;
     HandlerReturnType handlePongPacket(BufferView const _view) const;
     HandlerReturnType handleWeatherStatusPacket(BufferView const _view) const;

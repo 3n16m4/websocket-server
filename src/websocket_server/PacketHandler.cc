@@ -5,6 +5,11 @@
 
 using namespace amadeus;
 
+PacketHandler::PacketHandler(std::shared_ptr<SharedState> const& _state)
+    : state_(_state)
+{
+}
+
 PacketHandler::HandlerReturnType PacketHandler::handle(PacketIdType _id,
                                                        BufferView const _view)
 {

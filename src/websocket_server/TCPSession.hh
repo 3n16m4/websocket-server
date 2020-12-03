@@ -168,6 +168,7 @@ class TCPSession
     /// \brief Constructor.
     TCPSession(std::shared_ptr<SharedState> const& _state)
         : state_(_state)
+		, handler_(_state)
     {
     }
 

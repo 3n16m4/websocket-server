@@ -1,6 +1,8 @@
 #ifndef WEBSOCKET_SERVER_SHARED_STATE_HH
 #define WEBSOCKET_SERVER_SHARED_STATE_HH
 
+#include "websocket_server/CommandLineInterface.hh"
+
 #include <memory>
 #include <mutex>
 #include <string>
@@ -26,6 +28,8 @@ class SharedState
   private:
     /// The document root.
     std::string const docRoot_;
+	/// The JSON config.
+	JSON const config_;
     /// Protects the sessions list.
     std::mutex mtx_;
     /// A set to track all plain websockets.
@@ -75,7 +79,7 @@ class SharedState
   public:
     /// \brief Constructor.
     /// \param _docRoot The document resources directory.
-    explicit SharedState(std::string _docRoot);
+    explicit SharedState(std::string _docRoot, JSON _config);
 
     /// \brief Returns the document root.
     std::string const& docRoot() const noexcept;

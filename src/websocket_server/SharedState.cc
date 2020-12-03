@@ -4,8 +4,9 @@
 
 using namespace amadeus;
 
-SharedState::SharedState(std::string _docRoot)
+SharedState::SharedState(std::string _docRoot, JSON _config)
     : docRoot_(std::move(_docRoot))
+    , config_(std::move(_config))
 {
 }
 
