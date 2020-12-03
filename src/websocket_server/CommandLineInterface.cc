@@ -32,7 +32,7 @@ void CommandLineInterface::parse(int _argc, char* _argv[])
 
     std::string_view const configFile{_argv[7]};
 
-    std::ifstream file(configFile);
+    std::ifstream file(configFile.data());
     if (!file.is_open()) {
         throw std::runtime_error(
             fmt::format("The specified file '{}' does not exist.", configFile));
