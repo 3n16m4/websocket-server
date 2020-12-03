@@ -112,10 +112,9 @@ class packet_view final
         return fmt;
     }
 
-    [[nodiscard]] friend std::ostream& operator<<(std::ostream& _os,
-                                                  packet_view const& _self)
+    friend std::ostream& operator<<(std::ostream& _os, packet_view const& _self)
     {
-        return _os << self.to_string();
+        return _os << _self.to_string();
     }
 
   private:

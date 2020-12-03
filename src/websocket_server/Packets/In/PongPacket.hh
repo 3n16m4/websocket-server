@@ -2,10 +2,12 @@
 #define WEBSOCKET_SERVER_OUT_PONG_PACKET_HH
 
 namespace amadeus {
+#pragma pack(push, 1)
 struct PongPacket
 {
     std::uint8_t header;
 };
+#pragma pack(pop)
 } // namespace amadeus
 
 #endif // !WEBSOCKET_SERVER_OUT_PONG_PACKET_HH

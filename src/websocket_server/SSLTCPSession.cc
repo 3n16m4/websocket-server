@@ -73,7 +73,7 @@ void SSLTCPSession::onHandshake(beast::error_code const& _error)
     Beast and asio dynamic buffers are not currently compatible. I have a branch
     which is working towards unification but it’s not ready yet.
     */
-    this->doRead();
+    TCPSession::run();
 }
 
 void SSLTCPSession::onShutdown(beast::error_code const& _error)
@@ -84,7 +84,12 @@ void SSLTCPSession::onShutdown(beast::error_code const& _error)
     }
 
     // Close the underlying TCP stream.
-    stream_.next_layer().close();
+    beast::error_code ec;
+    stream_.next_layer().socket().close(ec);
+    
+    if (ec) {
+        LOG_ERROR("close error: {}\n", ec.message());
+    }
 
     LOG_DEBUG("SSLTCPSession gracefully shut down.\n");
 }

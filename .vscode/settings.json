@@ -90,6 +90,10 @@
         "*.ipp": "cpp",
         "fstream": "cpp",
         "format": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "filesystem": "cpp",
+        "valarray": "cpp",
+        "forward_list": "cpp",
+        "__functional_03": "cpp"
     }
 }

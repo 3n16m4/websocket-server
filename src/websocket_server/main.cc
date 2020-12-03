@@ -27,8 +27,8 @@ int main(int argc, char* argv[])
     CommandLineInterface cli;
     try {
         cli.parse(argc, argv);
-    } catch (std::invalid_argument const& e) {
-        LOG_FATAL("{}\n", e.what());
+    } catch (std::exception const& e) {
+        LOG_ERROR("{}\n", e.what());
         return EXIT_FAILURE;
     }
 
@@ -49,12 +49,16 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    // Create and launch the HTTP listener.
+    // Create and launch the HTTP listeners.
     PlainHttpListener plainHttpListener{
         io, tcp::endpoint{cli.ip, cli.httpPort},
         std::make_shared<SharedState>(cli.docRoot)};
 
-    // Create and launch the TCP listener.
+    SSLHttpListener sslHttpListener{io, ctx,
+                                    tcp::endpoint{cli.ip, cli.httpsPort},
+                                    std::make_shared<SharedState>(cli.docRoot)};
+
+    // Create and launch the TCP listeners.
     PlainTCPListener plainTCPListener{
         io, tcp::endpoint{cli.ip, cli.tcpPort},
         std::make_shared<SharedState>(cli.docRoot)};
@@ -63,15 +67,11 @@ int main(int argc, char* argv[])
                                   tcp::endpoint{cli.ip, cli.tcpSecurePort},
                                   std::make_shared<SharedState>(cli.docRoot)};
 
-    SSLHttpListener sslHttpListener{io, ctx,
-                                    tcp::endpoint{cli.ip, cli.httpsPort},
-                                    std::make_shared<SharedState>(cli.docRoot)};
-
     try {
         plainHttpListener.run();
+        sslHttpListener.run();
         plainTCPListener.run();
         sslTCPListener.run();
-        sslHttpListener.run();
     } catch (boost::system::system_error const& e) {
         LOG_FATAL("{}\n", e.what());
         io.stop();

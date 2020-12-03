@@ -38,6 +38,12 @@ void SharedState::join(SSLWebSocketSession* _session)
     ssl_sessions_.emplace(_session);
 }
 
+void SharedState::join(StationId _id, PlainTCPSession* _session)
+{
+    std::scoped_lock<std::mutex> lk(mtx_);
+    plain_tcp_sessions_.emplace(_id, _session);
+}
+
 void SharedState::leave(PlainWebSocketSession* _session)
 {
     std::scoped_lock<std::mutex> lk(mtx_);

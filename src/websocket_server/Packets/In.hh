@@ -3,6 +3,8 @@
 
 #include "websocket_server/Packets/Common.hh"
 #include "websocket_server/Packets/In/HandshakePacket.hh"
+#include "websocket_server/Packets/In/PongPacket.hh"
+#include "websocket_server/Packets/In/WeatherStatusPacket.hh"
 
 namespace amadeus {
 namespace in {
@@ -12,7 +14,23 @@ enum class PacketType : std::uint8_t
     Pong = 0x01,
     WeatherStatus = 0x02,
 };
+
+/// \brief Returns the exact size of the packet by a given valid PacketId.
+constexpr std::size_t sizeByPacketId(PacketType _id) noexcept
+{
+    switch (_id) {
+    case PacketType::Handshake:
+        return sizeof(HandshakePacket);
+    case PacketType::Pong:
+        return sizeof(PongPacket);
+    case PacketType::WeatherStatus:
+        return sizeof(WeatherStatusPacket);
+    default:
+        break;
+    }
+    return 0;
 }
+} // namespace in
 } // namespace amadeus
 
 #endif // !WEBSOCKET_SERVER_IN_HH

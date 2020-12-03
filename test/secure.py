@@ -25,6 +25,7 @@ def main():
             data = ssock.recv(1024 * 8)
             print("+++ Received +++ :: {}".format(data.decode('utf-8')))
 
+            ssock.shutdown(socket.SHUT_RDWR)
             ssock.close()
 
 if __name__ == '__main__':

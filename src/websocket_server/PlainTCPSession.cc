@@ -28,7 +28,7 @@ beast::tcp_stream PlainTCPSession::releaseStream() noexcept
 
 void PlainTCPSession::run()
 {
-    this->doRead();
+    TCPSession::run();
 }
 
 void PlainTCPSession::disconnect()
@@ -38,5 +38,11 @@ void PlainTCPSession::disconnect()
 
     if (ec) {
         LOG_ERROR("shutdown error: {}\n", ec.message());
+    }
+
+    stream_.socket().close(ec);
+    
+    if (ec) {
+        LOG_ERROR("close error: {}\n", ec.message());
     }
 }
