@@ -1,6 +1,8 @@
 #ifndef WEBSOCKET_SERVER_IN_HANDSHAKE_PACKET_HH
 #define WEBSOCKET_SERVER_IN_HANDSHAKE_PACKET_HH
 
+#include <array>
+
 namespace amadeus {
 enum class StationId : std::uint8_t;
 #pragma pack(push, 1)
