@@ -145,7 +145,7 @@ Client to Server:
 0 --> WeatherStatusRequest
 
 Server to Client:
-1 --> WeatherStatusRequest
+1 --> WeatherStatusResponse
 
 > Sending a weather status request:
 ```json
