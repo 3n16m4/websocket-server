@@ -2,16 +2,15 @@
 #define WEBSOCKET_SERVER_TCP_SESSION_HH
 
 #include "websocket_server/asiofwd.hh"
-#include "websocket_server/SharedState.hh"
 #include "websocket_server/Common.hh"
 #include "websocket_server/Logger.hh"
 #include "websocket_server/PacketHandler.hh"
-#include "websocket_server/Packets/Out/HandshakePacket.hh"
+#include "websocket_server/SharedState.hh"
 
-#include <boost/beast/core/error.hpp>
-#include <boost/beast/core/stream_traits.hpp>
 #include <boost/asio/read.hpp>
 #include <boost/asio/write.hpp>
+#include <boost/beast/core/error.hpp>
+#include <boost/beast/core/stream_traits.hpp>
 
 #include <array>
 #include <memory>
@@ -33,6 +32,8 @@ class TCPSession
     /// The maximum amount of bytes for the output buffer.
     static constexpr auto MaxOutputSize{512U};
 
+    using PacketHandlerType = PacketHandler<class TCPSession>;
+
     /// The shared state.
     std::shared_ptr<SharedState> state_;
     /// The underlying input buffer for TCP responses.
@@ -42,13 +43,7 @@ class TCPSession
     /// The number of bytes we have left to read.
     std::size_t numBytesLeft_{};
     /// The underlying PacketHandler for the µc-connection.
-    PacketHandler handler_;
-
-    /// \brief Helper function to access the derived class.
-    Derived& derived()
-    {
-        return static_cast<Derived&>(*this);
-    }
+    PacketHandler<TCPSession> handler_;
 
     /// \brief CompletionToken for the asynchronous read operation.
     void onReadPacketHeader(beast::error_code const& _error,
@@ -104,7 +99,8 @@ class TCPSession
             // Update the number of bytes we have left to read.
             numBytesLeft_ -= bytesParsed;
 
-            using ResultType = PacketHandler::ResultType;
+            using ResultType = typename PacketHandlerType::ResultType;
+
             switch (status) {
             case ResultType::Good:
                 break;
@@ -126,6 +122,32 @@ class TCPSession
         doReadPacketHeader();
     }
 
+  public:
+    /// \brief Constructor.
+    TCPSession(std::shared_ptr<SharedState> const& _state)
+        : state_(_state)
+        , handler_(*this)
+    {
+    }
+
+    /// \brief Helper function to access the derived class.
+    Derived& derived()
+    {
+        return static_cast<Derived&>(*this);
+    }
+
+    /// \brief Returns the underlying SharedState reference.
+    SharedState const& sharedState() const noexcept
+    {
+        return *state_.get();
+    };
+
+    /// \brief Returns the underlying SharedState reference.
+    SharedState & sharedState() noexcept
+    {
+        return *state_.get();
+    };
+	
     // clang-format off
     /// \brief Send a packet and be notified about the asynchronous write
     /// operation through the CompletionHandler.
@@ -135,8 +157,6 @@ class TCPSession
     ///     // ...
     /// }
     // clang-format on
-    /// TODO: perhaps the completionhandler is not even important because we are
-    /// only using this function in this class anyway.
     template <typename Packet, typename CompletionHandler>
     void writePacket(Packet const& _packet, CompletionHandler&& _handler)
     {
@@ -164,21 +184,14 @@ class TCPSession
                           });
     }
 
-  public:
-    /// \brief Constructor.
-    TCPSession(std::shared_ptr<SharedState> const& _state)
-        : state_(_state)
-    {
-    }
-
     /// \brief Starts the asynchronous communication by sending a 'Handshake'
     /// packet.
     void run()
     {
-        HandshakePacket packet{};
+        out::HandshakePacket packet{};
 
         writePacket(packet, [this](auto&& bytes_transferred) {
-            LOG_INFO("Handshake packet sent with {} bytes.\n",
+            LOG_INFO("HandshakePacket sent with {} bytes.\n",
                      bytes_transferred);
 
             /// TODO: Start reading packets...

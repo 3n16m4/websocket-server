@@ -1,11 +1,13 @@
 #include "websocket_server/SharedState.hh"
 #include "websocket_server/PlainWebSocketSession.hh"
 #include "websocket_server/SSLWebSocketSession.hh"
+#include "websocket_server/Logger.hh"
 
 using namespace amadeus;
 
-SharedState::SharedState(std::string _docRoot)
+SharedState::SharedState(std::string _docRoot, JSON const& _config)
     : docRoot_(std::move(_docRoot))
+    , config_(_config)
 {
 }
 
@@ -26,6 +28,11 @@ std::string const& SharedState::docRoot() const noexcept
     return docRoot_;
 }
 
+JSON const& SharedState::config() const noexcept
+{
+    return config_;
+}
+
 void SharedState::join(PlainWebSocketSession* _session)
 {
     std::scoped_lock<std::mutex> lk(mtx_);
@@ -41,7 +48,30 @@ void SharedState::join(SSLWebSocketSession* _session)
 void SharedState::join(StationId _id, PlainTCPSession* _session)
 {
     std::scoped_lock<std::mutex> lk(mtx_);
-    plain_tcp_sessions_.emplace(_id, _session);
+    auto const [_, joined] = plain_tcp_sessions_.try_emplace(_id, _session);
+
+    /// TODO: remove me!
+    if (joined) {
+        LOG_INFO("PlainTCPSession joined! Size: {}\n",
+                 plain_tcp_sessions_.size());
+    } else {
+        LOG_INFO("PlainTCPSession already joined! Size: {}\n",
+                 plain_tcp_sessions_.size());
+    }
+}
+
+void SharedState::join(StationId _id, SSLTCPSession* _session)
+{
+    std::scoped_lock<std::mutex> lk(mtx_);
+    auto const [_, joined] = ssl_tcp_sessions_.try_emplace(_id, _session);
+
+    /// TODO: remove me!
+    if (joined) {
+        LOG_INFO("SSLTCPSession joined! Size: {}\n", ssl_tcp_sessions_.size());
+    } else {
+        LOG_INFO("SSLTCPSession already joined! Size: {}\n",
+                 ssl_tcp_sessions_.size());
+    }
 }
 
 void SharedState::leave(PlainWebSocketSession* _session)

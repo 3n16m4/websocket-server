@@ -52,20 +52,20 @@ int main(int argc, char* argv[])
     // Create and launch the HTTP listeners.
     PlainHttpListener plainHttpListener{
         io, tcp::endpoint{cli.ip, cli.httpPort},
-        std::make_shared<SharedState>(cli.docRoot)};
+        std::make_shared<SharedState>(std::move(cli.docRoot), cli.config)};
 
-    SSLHttpListener sslHttpListener{io, ctx,
-                                    tcp::endpoint{cli.ip, cli.httpsPort},
-                                    std::make_shared<SharedState>(cli.docRoot)};
+    SSLHttpListener sslHttpListener{
+        io, ctx, tcp::endpoint{cli.ip, cli.httpsPort},
+        std::make_shared<SharedState>(std::move(cli.docRoot), cli.config)};
 
     // Create and launch the TCP listeners.
     PlainTCPListener plainTCPListener{
         io, tcp::endpoint{cli.ip, cli.tcpPort},
-        std::make_shared<SharedState>(cli.docRoot)};
+        std::make_shared<SharedState>(std::move(cli.docRoot), cli.config)};
 
-    SSLTCPListener sslTCPListener{io, ctx,
-                                  tcp::endpoint{cli.ip, cli.tcpSecurePort},
-                                  std::make_shared<SharedState>(cli.docRoot)};
+    SSLTCPListener sslTCPListener{
+        io, ctx, tcp::endpoint{cli.ip, cli.tcpSecurePort},
+        std::make_shared<SharedState>(std::move(cli.docRoot), cli.config)};
 
     try {
         plainHttpListener.run();

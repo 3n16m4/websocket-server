@@ -1,5 +1,6 @@
 boost-asio
 boost-beast
+boost-uuid
 fmt
 nlohmann-json
 gtest
