@@ -22,7 +22,7 @@ class PlainWebSocketSession;
 class SSLWebSocketSession;
 class PlainTCPSession;
 class SSLTCPSession;
-enum class StationId;
+enum class StationId : std::uint8_t;
 class SharedState
 {
   private:
@@ -83,6 +83,9 @@ class SharedState
 
     /// \brief Returns the document root.
     std::string const& docRoot() const noexcept;
+
+	/// \brief Returns the JSON config.
+	JSON const& config() const noexcept;
 
     /// \brief Join a PlainWebSocketSession and insert it into the list.
     /// \param _session The PlainWebSocketSession pointer.

@@ -27,6 +27,11 @@ std::string const& SharedState::docRoot() const noexcept
     return docRoot_;
 }
 
+JSON const& SharedState::config() const noexcept
+{
+	return config_;
+}
+
 void SharedState::join(PlainWebSocketSession* _session)
 {
     std::scoped_lock<std::mutex> lk(mtx_);
