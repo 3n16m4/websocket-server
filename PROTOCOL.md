@@ -132,6 +132,21 @@ typedef struct weather_status_packet {
 
 ### Frontend
 ------------------------
+The communication between the frontend and the server is realized through WebSockets and the HTTP Protocol with MessagePack as the underlying encoding / decoding process for the requests / responses.
+
+References:
+https://github.com/msgpack/msgpack-javascript
+https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API
+
+The key 'id' in the json request is related to the request / response type.
+Currently, the following ids are specified:
+
+Client to Server:
+0 --> WeatherStatusRequest
+
+Server to Client:
+1 --> WeatherStatusRequest
+
 > Sending a weather status request:
 ```json
 {
