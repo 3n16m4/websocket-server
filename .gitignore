@@ -37,3 +37,6 @@ CMakeSettings.json
 
 #clangd specific files 
 .cache/
+
+#project specific files
+server_log.txt
