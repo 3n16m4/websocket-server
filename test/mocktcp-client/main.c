@@ -6,7 +6,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <netdb.h>
-#include <strings.h>
+#include <string.h>
 
 #pragma pack(push, 1)
 typedef struct handshake_packet
@@ -54,6 +54,10 @@ int main()
 
     bytes = send(sockfd, (const void*)&packet, sizeof(packet), 0);
     printf("sent %zu bytes.\n", bytes);
+
+    bytes = recv(sockfd, buffer, sizeof(buffer), 0);
+    printf("received %zu bytes.\n", bytes);
+    printf("packet header: %x\n", buffer[0] & 0xff);
     
     return 0;
 }
