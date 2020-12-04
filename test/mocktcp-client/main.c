@@ -48,9 +48,9 @@ int main()
 
     handshake_packet_t packet = {.header = 0x00,
                                  .station_id = 0x00,
-                                 .uuid = {0x00, 0x01, 0x02, 0x03, 0x00, 0x01,
-                                          0x02, 0x03, 0x00, 0x01, 0x02, 0x03,
-                                          0x00, 0x01, 0x02, 0x03}};
+                                 .uuid = {0xa8, 0x51, 0x17, 0x3e, 0x82, 0x64,
+                                          0x4b, 0x35, 0x80, 0xe2, 0x80, 0x01,
+                                          0x71, 0x12, 0xcc, 0x9d}};
 
     bytes = send(sockfd, (const void*)&packet, sizeof(packet), 0);
     printf("sent %zu bytes.\n", bytes);
@@ -58,6 +58,6 @@ int main()
     bytes = recv(sockfd, buffer, sizeof(buffer), 0);
     printf("received %zu bytes.\n", bytes);
     printf("packet header: %x\n", buffer[0] & 0xff);
-    
+
     return 0;
 }

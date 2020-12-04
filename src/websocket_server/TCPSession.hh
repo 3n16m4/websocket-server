@@ -45,12 +45,6 @@ class TCPSession
     /// The underlying PacketHandler for the µc-connection.
     PacketHandler<TCPSession> handler_;
 
-    /// \brief Helper function to access the derived class.
-    Derived& derived()
-    {
-        return static_cast<Derived&>(*this);
-    }
-
     /// \brief CompletionToken for the asynchronous read operation.
     void onReadPacketHeader(beast::error_code const& _error,
                             std::size_t _bytesTransferred)
@@ -136,12 +130,24 @@ class TCPSession
     {
     }
 
+    /// \brief Helper function to access the derived class.
+    Derived& derived()
+    {
+        return static_cast<Derived&>(*this);
+    }
+
     /// \brief Returns the underlying SharedState reference.
     SharedState const& sharedState() const noexcept
     {
         return *state_.get();
     };
 
+    /// \brief Returns the underlying SharedState reference.
+    SharedState & sharedState() noexcept
+    {
+        return *state_.get();
+    };
+	
     // clang-format off
     /// \brief Send a packet and be notified about the asynchronous write
     /// operation through the CompletionHandler.

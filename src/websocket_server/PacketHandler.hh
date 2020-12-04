@@ -115,7 +115,8 @@ class PacketHandler
             [this](std::string_view _uuid) noexcept -> bool {
             auto const& config = session_.sharedState().config();
             for (auto const& e : config) {
-                auto const uuidView = e.template get<std::string_view>();
+                auto const uuidView =
+                    e["uuid"].template get<std::string_view>();
                 if (_uuid == uuidView) {
                     return true;
                 }
@@ -123,22 +124,27 @@ class PacketHandler
             return false;
         };
 
-        /// TODO: Handle... respond with HandshakeACKPacket or
-        /// HandshakeNAKPacket
+        LOG_DEBUG("UUID from packet = {0:#04x}\n",
+                  fmt::join(packet->uuid, ", "));
+
         if (isUUIDRegistered(uuidStr.c_str())) {
             // send good handshake
-			out::HandshakeACKPacket const packet{};
-            session_.writePacket(packet, [this](auto&& bytes_transferred) {
-                LOG_INFO("HandshakeACKPacket sent with {} bytes.\n",
-                         bytes_transferred);
-            });
+            out::HandshakeACKPacket const handshakeACK{};
+            session_.writePacket(
+                handshakeACK, [this](auto&& bytes_transferred) {
+                    LOG_INFO("HandshakeACKPacket sent with {} bytes.\n",
+                             bytes_transferred);
+                });
+            /// TODO: Add to SharedState session list
+            session_.sharedState().join(packet->stationId, &session_.derived());
         } else {
             // send bad handshake
-			out::HandshakeNAKPacket const packet{};
-            session_.writePacket(packet, [this](auto&& bytes_transferred) {
-                LOG_INFO("HandshakeNAKPacket sent with {} bytes.\n",
-                         bytes_transferred);
-            });
+            out::HandshakeNAKPacket const handshakeNAK{};
+            session_.writePacket(
+                handshakeNAK, [this](auto&& bytes_transferred) {
+                    LOG_INFO("HandshakeNAKPacket sent with {} bytes.\n",
+                             bytes_transferred);
+                });
         }
 
         return std::make_pair(ResultType::Good, packet.size());

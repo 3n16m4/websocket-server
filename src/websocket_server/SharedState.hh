@@ -29,7 +29,7 @@ class SharedState
     /// The document root.
     std::string const docRoot_;
 	/// The JSON config.
-	JSON const config_;
+	JSON const& config_;
     /// Protects the sessions list.
     std::mutex mtx_;
     /// A set to track all plain websockets.
@@ -79,7 +79,7 @@ class SharedState
   public:
     /// \brief Constructor.
     /// \param _docRoot The document resources directory.
-    explicit SharedState(std::string _docRoot, JSON _config);
+    explicit SharedState(std::string _docRoot, JSON const& _config);
 
     /// \brief Returns the document root.
     std::string const& docRoot() const noexcept;
@@ -101,6 +101,11 @@ class SharedState
     /// \param _session The PlainTCPSession pointer.
     /// \remarks Thread-Safe.
     void join(StationId _id, PlainTCPSession* _session);
+	
+    /// \brief Join a SSLTCPSession and insert it into the lsit.
+    /// \param _session The SSLTCPSession pointer.
+    /// \remarks Thread-Safe.
+    void join(StationId _id, SSLTCPSession* _session);
 
     /// \brief Leave a PlainWebSocketSession and erase it from the list.
     /// \param _session The PlainWebSocketSession pointer.
