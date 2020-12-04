@@ -6,7 +6,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <netdb.h>
-#include <strings.h>
+#include <string.h>
 
 #pragma pack(push, 1)
 typedef struct handshake_packet
