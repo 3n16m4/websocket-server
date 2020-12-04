@@ -155,6 +155,16 @@ Server to Client:\
 }
 ```
 
+> Note: 'stationId' referes to the numerical value of the following enum:
+```c
+// can be further extended...
+typedef enum station_id {
+    GOE = 0,
+    WF  = 1,
+    BS  = 2,
+} station_id_t;
+```
+
 > Receiving a weather status response:
 ```json
 {
