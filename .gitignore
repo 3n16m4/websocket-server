@@ -34,3 +34,6 @@ venv/
 test/*.json
 test/node_modules/*
 CMakeSettings.json
+
+#clangd specific
+.cache/
