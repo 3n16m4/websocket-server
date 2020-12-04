@@ -2,7 +2,11 @@
 #define WEBSOCKET_SERVER_OUT_HH
 
 #include "websocket_server/Packets/Common.hh"
+#include "websocket_server/Packets/Out/HandshakeACKPacket.hh"
+#include "websocket_server/Packets/Out/HandshakeNAKPacket.hh"
 #include "websocket_server/Packets/Out/HandshakePacket.hh"
+#include "websocket_server/Packets/Out/PingPacket.hh"
+#include "websocket_server/Packets/Out/WeatherStatusPacket.hh"
 
 namespace amadeus {
 namespace out {

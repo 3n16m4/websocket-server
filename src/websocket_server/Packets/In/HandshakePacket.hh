@@ -6,6 +6,7 @@
 namespace amadeus {
 enum class StationId : std::uint8_t;
 #pragma pack(push, 1)
+namespace in {
 struct HandshakePacket
 {
     std::uint8_t header{};
@@ -13,6 +14,7 @@ struct HandshakePacket
     StationId stationId;
 };
 #pragma pack(pop)
+} // namespace in
 } // namespace amadeus
 
 #endif // !WEBSOCKET_SERVER_IN_HANDSHAKE_PACKET_HH

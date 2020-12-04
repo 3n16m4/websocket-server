@@ -3,11 +3,13 @@
 
 namespace amadeus {
 #pragma pack(push, 1)
+namespace out {
 struct WeatherStatusPacket
 {
     std::uint8_t header;
 };
 #pragma pack(pop)
+} // namespace out
 } // namespace amadeus
 
 #endif // !WEBSOCKET_SERVER_OUT_WEATHER_STATUS_PACKET_HH

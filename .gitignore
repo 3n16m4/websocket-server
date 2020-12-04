@@ -35,5 +35,8 @@ test/*.json
 test/node_modules/*
 CMakeSettings.json
 
-#clangd specific
+#clangd specific files 
 .cache/
+
+#project specific files
+server_log.txt
