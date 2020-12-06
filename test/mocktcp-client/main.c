@@ -59,5 +59,7 @@ int main()
     printf("received %zu bytes.\n", bytes);
     printf("packet header: %x\n", buffer[0] & 0xff);
 
+	sleep(100000);
+
     return 0;
 }

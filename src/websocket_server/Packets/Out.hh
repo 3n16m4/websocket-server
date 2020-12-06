@@ -21,5 +21,4 @@ enum class PacketType : std::uint8_t
 }
 } // namespace amadeus
 
-
 #endif // !WEBSOCKET_SERVER_OUT_HH

@@ -4,7 +4,16 @@
 #include <array>
 
 namespace amadeus {
-enum class StationId : std::uint8_t;
+/// TODO: Maybe extend to something for meaningful such as "LivingRoom",
+/// "Bathroom", "Garden", etc.
+enum class StationId : std::uint8_t
+{
+    Goe = 0,
+    Wf = 1,
+    Bs = 2,
+    Max,
+};
+
 #pragma pack(push, 1)
 namespace in {
 struct HandshakePacket

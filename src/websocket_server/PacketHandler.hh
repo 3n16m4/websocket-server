@@ -7,6 +7,7 @@
 #include "websocket_server/Packets/Out.hh"
 #include "websocket_server/utils/packet_view.hh"
 
+#include <boost/uuid/string_generator.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/asio/buffer.hpp>
@@ -60,11 +61,10 @@ class PacketHandler
     /// 'Indeterminate' when more data is required. The std::size_t return
     /// value indicates how much of the input has been consumed. See \ref
     /// HandlerReturnType for more details.
-    HandlerReturnType handle(PacketIdType _id, BufferView const _view)
+    HandlerReturnType handle(in::PacketType _id, BufferView const _view)
     {
         using namespace in;
-        auto const id = static_cast<PacketType>(_id);
-        auto const expectedSize = sizeByPacketId(id);
+        auto const expectedSize = sizeByPacketId(_id);
 
         // If it is not big enough, we'll simply return 'Indeterminate' to the
         // caller to notify that it should read more into the input buffer
@@ -78,7 +78,7 @@ class PacketHandler
         // point, the handler can fully trust that _view.size() is big enough to
         // have a view of its packet.)
 
-        switch (id) {
+        switch (_id) {
         case PacketType::Handshake:
             return handleHandshakePacket(_view);
         case PacketType::Pong:
@@ -104,10 +104,50 @@ class PacketHandler
 
         LOG_INFO("handleHandshakePacket called with view: {}.\n", packet);
 
+        auto sendBadRequest = [&, this](auto&& _error) -> HandlerReturnType {
+            out::HandshakeNAKPacket handshakeNAK{};
+            handshakeNAK.reason = _error;
+
+            session_.writePacket(
+                handshakeNAK, [this](auto&& bytes_transferred) {
+                    LOG_INFO("HandshakeNAKPacket sent with {} bytes.\n",
+                             bytes_transferred);
+                });
+
+            return std::make_pair(ResultType::Good, packet.size());
+        };
+
+        // check if the stationId is valid.
+        using enum_type = std::underlying_type<StationId>::type;
+
+        HandshakeReason error{};
+
+        // Is the id in range?
+        auto const id = static_cast<enum_type>(packet->stationId);
+        if (!(id >= 0 && id <= static_cast<enum_type>(StationId::Max))) {
+			LOG_DEBUG("StationId is not in range.\n");
+            return sendBadRequest(HandshakeReason::ReasonStationIdInvalid);
+        }
+
         boost::uuids::uuid uuid;
         std::memcpy(&uuid, packet->uuid.data(), packet->uuid.size());
 
+        auto const isValidUUID = [this](std::string const& maybe_uuid) {
+            using namespace boost::uuids;
+
+            try {
+                auto const result = string_generator()(maybe_uuid);
+                return result.version() != uuid::version_unknown;
+            } catch (std::runtime_error const&) {
+                return false;
+            }
+        };
+
         auto const uuidStr = boost::uuids::to_string(uuid);
+        if (!isValidUUID(uuidStr)) {
+			LOG_DEBUG("UUID format is invalid.\n");
+            return sendBadRequest(HandshakeReason::ReasonUUIDInvalidFormat);
+        }
 
         /// \brief Returns true if the given UUID is registered in the config,
         /// false otherwise.
@@ -128,23 +168,26 @@ class PacketHandler
                   fmt::join(packet->uuid, ", "));
 
         if (isUUIDRegistered(uuidStr.c_str())) {
-            // send good handshake
+            auto const joined = session_.sharedState().join(
+                packet->stationId, &session_.derived());
+
+            if (!joined) {
+				LOG_DEBUG("StationId already exists.\n");
+                return sendBadRequest(HandshakeReason::ReasonStationIdAlready);
+            }
+
+			// save the StationId for this session.
+			session_.stationId(packet->stationId);
+
             out::HandshakeACKPacket const handshakeACK{};
             session_.writePacket(
                 handshakeACK, [this](auto&& bytes_transferred) {
                     LOG_INFO("HandshakeACKPacket sent with {} bytes.\n",
                              bytes_transferred);
                 });
-            /// TODO: Add to SharedState session list
-            session_.sharedState().join(packet->stationId, &session_.derived());
         } else {
-            // send bad handshake
-            out::HandshakeNAKPacket const handshakeNAK{};
-            session_.writePacket(
-                handshakeNAK, [this](auto&& bytes_transferred) {
-                    LOG_INFO("HandshakeNAKPacket sent with {} bytes.\n",
-                             bytes_transferred);
-                });
+			LOG_DEBUG("UUID is not registered for this TCPSession.\n");
+            return sendBadRequest(HandshakeReason::ReasonUUIDInvalid);
         }
 
         return std::make_pair(ResultType::Good, packet.size());
