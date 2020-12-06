@@ -113,12 +113,15 @@ class TCPSession
                 return doReadPacketHeader();
             } break;
             case ResultType::Bad: {
-				derived().disconnect();
+                derived().disconnect();
             } break;
             case ResultType::Indeterminate: {
                 auto const packetName = in::packetNameById(id);
                 LOG_DEBUG("Incomplete Packet received ({})--> Reading more.\n",
                           packetName);
+
+                beast::get_lowest_layer(derived().stream())
+                    .expires_after(std::chrono::seconds(Timeout));
 
                 return derived().stream().async_read_some(
                     asio::buffer(input_.data() + numBytesLeft_,
