@@ -110,8 +110,8 @@ typedef struct handshake_nak_packet {
 
 typedef enum handshake_reason {
     REASON_STATION_ID_ALREADY = 1, // StationId was already assigned on the server.
-    REASON_UUID_FORMAT        = 2, // Wrong UUID format.
-    REASON_UUID_ALREADY       = 4, // The UUID already exists.
+	REASON_STATION_ID_INVALID = 2, // StationId is invalid because it could not be found.
+    REASON_UUID_FORMAT        = 4, // Wrong UUID format.
 } handshake_reason_t;
 
 // Ping packet. (from server)
