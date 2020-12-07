@@ -30,7 +30,7 @@ class Listener
     /// A reference to the main IO-Context.
     asio::io_context& io_;
     /// A reference to the main SSL-Context.
-    /// TODO: Dirty, change ot optional_ref
+    /// TODO: Dirty, change to optional_ref
     ssl::context* ctx_;
     /// The TCP acceptor.
     tcp::acceptor acceptor_;
@@ -83,23 +83,10 @@ class Listener
     /// \param _io A reference to the main IO-Context.
     /// \param _ctx A reference to the main SSL-Context.
     /// \param _endpoint The endpoint to which the tcp acceptor will listen to.
-    Listener(asio::io_context& _io, ssl::context& _ctx, tcp::endpoint _endpoint,
+    Listener(asio::io_context& _io, ssl::context* _ctx, tcp::endpoint _endpoint,
              std::shared_ptr<SharedState> const& _state)
         : io_(_io)
-        , ctx_(&_ctx)
-        , acceptor_(asio::make_strand(_io))
-        , endpoint_(std::move(_endpoint))
-        , state_(_state)
-    {
-    }
-
-    /// \brief Constructor for Plain Protocols.
-    /// \param _io A reference to the main IO-Context.
-    /// \param _endpoint The endpoint to which the tcp acceptor will listen to.
-    Listener(asio::io_context& _io, tcp::endpoint _endpoint,
-             std::shared_ptr<SharedState> const& _state)
-        : io_(_io)
-        , ctx_(nullptr)
+        , ctx_(_ctx)
         , acceptor_(asio::make_strand(_io))
         , endpoint_(std::move(_endpoint))
         , state_(_state)
