@@ -110,8 +110,8 @@ typedef struct handshake_nak_packet {
 
 typedef enum handshake_reason {
     REASON_STATION_ID_ALREADY = 1, // StationId was already assigned on the server.
-    REASON_UUID_FORMAT        = 2, // Wrong UUID format.
-    REASON_UUID_ALREADY       = 4, // The UUID already exists.
+	REASON_STATION_ID_INVALID = 2, // StationId is invalid because it could not be found.
+    REASON_UUID_FORMAT        = 4, // Wrong UUID format.
 } handshake_reason_t;
 
 // Ping packet. (from server)
@@ -132,12 +132,37 @@ typedef struct weather_status_packet {
 
 ### Frontend
 ------------------------
+The communication between the frontend and the server is realized through WebSockets and the HTTP Protocol with MessagePack as the underlying encoding / decoding process for the requests / responses.
+
+References:
+- [msgpack-javascript](https://github.com/msgpack/msgpack-javascript)
+- [WebSockets API](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API)
+
+The key 'id' in the json request is related to the request / response type.
+Currently, the following ids are specified:
+
+Client to Server:\
+0 --> WeatherStatusRequest
+
+Server to Client:\
+1 --> WeatherStatusResponse
+
 > Sending a weather status request:
 ```json
 {
     "id": 0,
     "stationId": 1
 }
+```
+
+> Note: 'stationId' referes to the numerical value of the following enum:
+```c
+// can be further extended...
+typedef enum station_id {
+    GOE = 0,
+    WF  = 1,
+    BS  = 2,
+} station_id_t;
 ```
 
 > Receiving a weather status response:

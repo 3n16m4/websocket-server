@@ -44,6 +44,8 @@ class TCPSession
     std::size_t numBytesLeft_{};
     /// The underlying PacketHandler for the µc-connection.
     PacketHandler<TCPSession> handler_;
+    /// Each session is uniquely identified with the StationId.
+    StationId stationId_;
 
     /// \brief CompletionToken for the asynchronous read operation.
     void onReadPacketHeader(beast::error_code const& _error,
@@ -80,7 +82,7 @@ class TCPSession
     void parsePacketHeader()
     {
         // Extract the PacketId from the buffer.
-        auto const& id = *input_.begin();
+        auto const id = static_cast<in::PacketType>(*input_.begin());
 
         // As long as we have packets in the buffer pending, we should parse
         // them all until there are no more bytes to be read from the buffer.
@@ -102,32 +104,51 @@ class TCPSession
             using ResultType = typename PacketHandlerType::ResultType;
 
             switch (status) {
-            case ResultType::Good:
-                break;
-            case ResultType::Bad:
-                break;
-            case ResultType::Indeterminate:
-                break;
+            case ResultType::Good: {
+                // do we still need to parse?
+                if (numBytesLeft_ > 0) {
+                    continue;
+                }
+                // we are done, read another packet.
+                return doReadPacketHeader();
+            } break;
+            case ResultType::Bad: {
+                derived().disconnect();
+            } break;
+            case ResultType::Indeterminate: {
+                auto const packetName = in::packetNameById(id);
+                LOG_DEBUG("Incomplete Packet received ({})--> Reading more.\n",
+                          packetName);
+
+                beast::get_lowest_layer(derived().stream())
+                    .expires_after(std::chrono::seconds(Timeout));
+
+                return derived().stream().async_read_some(
+                    asio::buffer(input_.data() + numBytesLeft_,
+                                 input_.size() - numBytesLeft_),
+                    [self = derived().shared_from_this()](
+                        auto&& error, auto&& bytes_transferred) {
+                        self->onReadPacketHeader(error, bytes_transferred);
+                    });
+            } break;
             }
         }
     }
 
-    /// \brief CompletionToken for the asynchronous write operation.
-    void onWrite(beast::error_code const& _error, std::size_t _bytesTransferred)
+  public:
+    /// \brief Creates a TCPSession.
+    TCPSession(asio::io_context& _ioc,
+               std::shared_ptr<SharedState> const& _state)
+        : state_(_state)
+        , handler_(_ioc, *this)
     {
-        std::string_view const message{input_.begin(), _bytesTransferred};
-        LOG_DEBUG("Sent {} {} bytes\n", message.data(), message.size());
-
-        // read another packet.
-        doReadPacketHeader();
     }
 
-  public:
-    /// \brief Constructor.
-    TCPSession(std::shared_ptr<SharedState> const& _state)
-        : state_(_state)
-        , handler_(*this)
+    /// \brief Leaves the TCPSession.
+    ~TCPSession()
     {
+        state_->leave<Derived>(stationId_);
+        LOG_DEBUG("TCPSession disconnected.\n");
     }
 
     /// \brief Helper function to access the derived class.
@@ -143,11 +164,21 @@ class TCPSession
     };
 
     /// \brief Returns the underlying SharedState reference.
-    SharedState & sharedState() noexcept
+    SharedState& sharedState() noexcept
     {
         return *state_.get();
     };
-	
+
+    StationId const stationId() const noexcept
+    {
+        return stationId_;
+    }
+
+    void stationId(StationId _id) noexcept
+    {
+        stationId_ = _id;
+    }
+
     // clang-format off
     /// \brief Send a packet and be notified about the asynchronous write
     /// operation through the CompletionHandler.
@@ -194,7 +225,6 @@ class TCPSession
             LOG_INFO("HandshakePacket sent with {} bytes.\n",
                      bytes_transferred);
 
-            /// TODO: Start reading packets...
             doReadPacketHeader();
         });
     }

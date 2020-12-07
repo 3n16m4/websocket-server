@@ -1,9 +1,9 @@
 #include "websocket_server/CommandLineInterface.hh"
 #include "websocket_server/Logger.hh"
-#include "websocket_server/PlainTCPListener.hh"
 #include "websocket_server/PlainHttpListener.hh"
-#include "websocket_server/SSLTCPListener.hh"
+#include "websocket_server/PlainTCPListener.hh"
 #include "websocket_server/SSLHttpListener.hh"
+#include "websocket_server/SSLTCPListener.hh"
 #include "websocket_server/ServerCertificate.hh"
 
 #include <boost/asio/io_context.hpp>
@@ -11,8 +11,8 @@
 #include <boost/asio/ssl/context.hpp>
 #include <boost/container/small_vector.hpp>
 
-#include <thread>
 #include <ratio>
+#include <thread>
 
 using namespace amadeus;
 

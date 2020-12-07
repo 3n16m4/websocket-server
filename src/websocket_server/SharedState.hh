@@ -90,22 +90,24 @@ class SharedState
     /// \brief Join a PlainWebSocketSession and insert it into the list.
     /// \param _session The PlainWebSocketSession pointer.
     /// \remarks Thread-Safe.
-    void join(PlainWebSocketSession* _session);
+    bool join(PlainWebSocketSession* _session);
 
     /// \brief Join an SSLWebSocketSession and insert it into the list.
     /// \param _session The SSLWebSocketSession pointer.
     /// \remarks Thread-Safe.
-    void join(SSLWebSocketSession* _session);
+    bool join(SSLWebSocketSession* _session);
 
     /// \brief Join a PlainTCPSession and insert it into the lsit.
     /// \param _session The PlainTCPSession pointer.
+	/// \param _id The StationId.
     /// \remarks Thread-Safe.
-    void join(StationId _id, PlainTCPSession* _session);
+    bool join(StationId _id, PlainTCPSession* _session);
 	
     /// \brief Join a SSLTCPSession and insert it into the lsit.
     /// \param _session The SSLTCPSession pointer.
+	/// \param _id The StationId.
     /// \remarks Thread-Safe.
-    void join(StationId _id, SSLTCPSession* _session);
+    bool join(StationId _id, SSLTCPSession* _session);
 
     /// \brief Leave a PlainWebSocketSession and erase it from the list.
     /// \param _session The PlainWebSocketSession pointer.
@@ -116,6 +118,18 @@ class SharedState
     /// \param _session The SSLWebSocketSession pointer.
     /// \remarks Thread-Safe.
     void leave(SSLWebSocketSession* _session);
+
+	template <typename SessionType>
+	void leave(StationId _id)
+	{
+		std::scoped_lock<std::mutex> lk(mtx_);
+
+		if constexpr (std::is_same_v<SessionType, PlainTCPSession>) {
+			plain_tcp_sessions_.erase(_id);
+		} else if constexpr (std::is_same_v<SessionType, SSLTCPSession>) {
+			ssl_tcp_sessions_.erase(_id);
+		}
+	}
 
     /// \brief Broadcast a message to all connected websocket sessions from the
     /// list.

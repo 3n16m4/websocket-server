@@ -67,10 +67,10 @@ class Listener
             std::make_shared<SSLHttpSession>(std::move(_socket), *ctx_, state_)
                 ->run();
         } else if constexpr (std::is_same_v<Protocol, PlainTCPSession>) {
-            std::make_shared<PlainTCPSession>(std::move(_socket), state_)
+            std::make_shared<PlainTCPSession>(io_, std::move(_socket), state_)
                 ->run();
         } else if constexpr (std::is_same_v<Protocol, SSLTCPSession>) {
-            std::make_shared<SSLTCPSession>(std::move(_socket), *ctx_, state_)
+            std::make_shared<SSLTCPSession>(io_, std::move(_socket), *ctx_, state_)
                 ->run();
         }
 
