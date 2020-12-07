@@ -2,15 +2,17 @@
 #define WEBSOCKET_SERVER_REQUEST_HANDLER_HH
 
 #include "websocket_server/asiofwd.hh"
+#include "websocket_server/Common.hh"
 #include "websocket_server/Logger.hh"
 #include "websocket_server/Packets/In.hh"
 #include "websocket_server/Packets/Out.hh"
 #include "websocket_server/utils/packet_view.hh"
 
+#include <boost/asio/buffer.hpp>
+#include <boost/asio/steady_timer.hpp>
 #include <boost/uuid/string_generator.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include <boost/asio/buffer.hpp>
 
 #include <cstdint>
 #include <type_traits>
@@ -51,8 +53,10 @@ class PacketHandler
     using BufferView = asio::const_buffer;
 
     /// \brief Constructor.
-    explicit PacketHandler(Session& _session)
+    explicit PacketHandler(asio::io_context& _ioc, Session& _session)
         : session_(_session)
+        , pingTimer_(_ioc, PingTimeout)
+        , pongTimer_(_ioc, PongTimeout)
     {
     }
 
@@ -97,8 +101,13 @@ class PacketHandler
   private:
     /// A reference to the TCPSession.
     Session& session_;
+    /// If no pong is received from the peer for a time equal to this
+    /// timeout, then the connection will be shut down.
+    asio::steady_timer pongTimer_;
+    /// Whenever this timeout expires, a ping packet will be sent to the peer.
+    asio::steady_timer pingTimer_;
 
-    HandlerReturnType handleHandshakePacket(BufferView const _view) const
+    HandlerReturnType handleHandshakePacket(BufferView const _view)
     {
         packet_view<in::HandshakePacket> const packet{_view.data()};
 
@@ -125,7 +134,7 @@ class PacketHandler
         // Is the id in range?
         auto const id = static_cast<enum_type>(packet->stationId);
         if (!(id >= 0 && id <= static_cast<enum_type>(StationId::Max))) {
-			LOG_DEBUG("StationId is not in range.\n");
+            LOG_DEBUG("StationId is not in range.\n");
             return sendBadRequest(HandshakeReason::ReasonStationIdInvalid);
         }
 
@@ -145,7 +154,7 @@ class PacketHandler
 
         auto const uuidStr = boost::uuids::to_string(uuid);
         if (!isValidUUID(uuidStr)) {
-			LOG_DEBUG("UUID format is invalid.\n");
+            LOG_DEBUG("UUID format is invalid.\n");
             return sendBadRequest(HandshakeReason::ReasonUUIDInvalidFormat);
         }
 
@@ -172,12 +181,14 @@ class PacketHandler
                 packet->stationId, &session_.derived());
 
             if (!joined) {
-				LOG_DEBUG("StationId already exists.\n");
+                LOG_DEBUG("StationId already exists.\n");
                 return sendBadRequest(HandshakeReason::ReasonStationIdAlready);
             }
 
-			// save the StationId for this session.
-			session_.stationId(packet->stationId);
+            // save the StationId for this session.
+            session_.stationId(packet->stationId);
+
+            startPingTimer();
 
             out::HandshakeACKPacket const handshakeACK{};
             session_.writePacket(
@@ -186,20 +197,24 @@ class PacketHandler
                              bytes_transferred);
                 });
         } else {
-			LOG_DEBUG("UUID is not registered for this TCPSession.\n");
+            LOG_DEBUG("UUID is not registered for this TCPSession.\n");
             return sendBadRequest(HandshakeReason::ReasonUUIDInvalid);
         }
 
         return std::make_pair(ResultType::Good, packet.size());
     }
 
-    HandlerReturnType handlePongPacket(BufferView const _view) const
+    HandlerReturnType handlePongPacket(BufferView const _view)
     {
         packet_view<in::PongPacket> const packet{_view.data()};
 
         LOG_INFO("handlePongPacket called with view: {}.\n", packet);
 
-        return std::make_pair(ResultType::Bad, 0);
+        // restart the pong timer, indicating that the client sent the packet in
+        // the right time and we can wait for the next timeout.
+        restartPongTimer();
+
+        return std::make_pair(ResultType::Good, 0);
     }
 
     HandlerReturnType handleWeatherStatusPacket(BufferView const _view) const
@@ -208,7 +223,64 @@ class PacketHandler
 
         LOG_INFO("handleWeatherStatusPacket called with view: {}\n", packet);
 
-        return std::make_pair(ResultType::Bad, 0);
+        return std::make_pair(ResultType::Good, 0);
+    }
+
+    void startPingTimer()
+    {
+        pingTimer_.async_wait(
+            [this, self = session_.derived().shared_from_this()](auto&& _error) {
+                onPingTimeout(_error);
+            });
+    }
+
+    void startPongTimer()
+    {
+        pongTimer_.async_wait(
+            [this, self = session_.derived().shared_from_this()](auto&& _error) {
+                onPongTimeout(_error);
+            });
+    }
+
+    void restartPingTimer()
+    {
+        pingTimer_.expires_at(pingTimer_.expiry() + PingTimeout);
+        startPingTimer();
+    }
+
+    void restartPongTimer()
+    {
+        pongTimer_.expires_at(pongTimer_.expiry() + PongTimeout);
+        startPongTimer();
+    }
+
+    void onPingTimeout(boost::system::error_code const& _error)
+    {
+        if (_error == asio::error::operation_aborted) {
+            return;
+        }
+
+        out::PingPacket const packet{};
+        session_.writePacket(packet, [this](auto&& bytes_transferred) {
+            LOG_INFO("PingPacket send with {} bytes.\n", bytes_transferred);
+        });
+
+        startPongTimer();
+        restartPingTimer();
+    }
+
+    void onPongTimeout(boost::system::error_code const& _error)
+    {
+        if (_error == asio::error::operation_aborted) {
+			LOG_DEBUG("PongTimer was cancelled.\n");
+            return;
+        }
+
+        LOG_ERROR("We haven't received a pong packet in the right time! "
+                  "disconnecting peer...\n");
+
+        auto& session = session_.derived();
+        session.disconnect();
     }
 };
 } // namespace amadeus

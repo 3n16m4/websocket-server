@@ -16,7 +16,7 @@ class PlainTCPSession
 
   public:
     /// \brief Create a plain TCP Session.
-    PlainTCPSession(tcp::socket&& _socket,
+    PlainTCPSession(asio::io_context& _ioc, tcp::socket&& _socket,
                     std::shared_ptr<SharedState> const& _state);
 
     ~PlainTCPSession();

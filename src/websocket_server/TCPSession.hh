@@ -137,9 +137,10 @@ class TCPSession
 
   public:
     /// \brief Creates a TCPSession.
-    TCPSession(std::shared_ptr<SharedState> const& _state)
+    TCPSession(asio::io_context& _ioc,
+               std::shared_ptr<SharedState> const& _state)
         : state_(_state)
-        , handler_(*this)
+        , handler_(_ioc, *this)
     {
     }
 
@@ -147,6 +148,7 @@ class TCPSession
     ~TCPSession()
     {
         state_->leave<Derived>(stationId_);
+        LOG_DEBUG("TCPSession disconnected.\n");
     }
 
     /// \brief Helper function to access the derived class.

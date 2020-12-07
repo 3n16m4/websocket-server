@@ -6,7 +6,7 @@ namespace amadeus {
 namespace out {
 struct PingPacket
 {
-    std::uint8_t header;
+    std::uint8_t header{0x03};
 };
 #pragma pack(pop)
 } // namespace out

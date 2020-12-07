@@ -6,9 +6,10 @@
 
 using namespace amadeus;
 
-SSLTCPSession::SSLTCPSession(tcp::socket&& _socket, ssl::context& _ctx,
+SSLTCPSession::SSLTCPSession(asio::io_context& _ioc, tcp::socket&& _socket,
+                             ssl::context& _ctx,
                              std::shared_ptr<SharedState> const& _state)
-    : TCPSession<SSLTCPSession>(_state)
+    : TCPSession<SSLTCPSession>(_ioc, _state)
     , stream_(std::move(_socket), _ctx)
 {
     LOG_DEBUG("SSLTCPSession::SSLTCPSession()\n");
@@ -86,7 +87,7 @@ void SSLTCPSession::onShutdown(beast::error_code const& _error)
     // Close the underlying TCP stream.
     beast::error_code ec;
     stream_.next_layer().socket().close(ec);
-    
+
     if (ec) {
         LOG_ERROR("close error: {}\n", ec.message());
     }

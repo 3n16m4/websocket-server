@@ -29,7 +29,8 @@ class SSLTCPSession
 
   public:
     /// \brief Create a secure TCP Session.
-    SSLTCPSession(tcp::socket&& _socket, ssl::context& _ctx,
+    SSLTCPSession(asio::io_context& _ioc, tcp::socket&& _socket,
+                  ssl::context& _ctx,
                   std::shared_ptr<SharedState> const& _state);
 
     ~SSLTCPSession();

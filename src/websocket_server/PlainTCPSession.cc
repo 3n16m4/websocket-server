@@ -3,9 +3,9 @@
 
 using namespace amadeus;
 
-PlainTCPSession::PlainTCPSession(tcp::socket&& _socket,
+PlainTCPSession::PlainTCPSession(asio::io_context& _ioc, tcp::socket&& _socket,
                                  std::shared_ptr<SharedState> const& _state)
-    : TCPSession<PlainTCPSession>(_state)
+    : TCPSession<PlainTCPSession>(_ioc, _state)
     , stream_(std::move(_socket))
 {
     LOG_DEBUG("PlainTCPSession::PlainTCPSession()\n");
