@@ -9,8 +9,11 @@
         "127.0.0.1",
         "8080",
         "8081",
+        "9090",
+        "9091",
         "www",
-        "8"
+        "config/config.json",
+        "1"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",

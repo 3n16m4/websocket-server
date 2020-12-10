@@ -31,7 +31,7 @@ class WebSocketSession
 {
   private:
     /// The shared state.
-    std::shared_ptr<SharedState> const& state_;
+    std::shared_ptr<SharedState> state_;
     /// The underlying buffer for requests.
     beast::flat_buffer buffer_;
 
@@ -164,11 +164,13 @@ class WebSocketSession
     explicit WebSocketSession(std::shared_ptr<SharedState> const& _state)
         : state_(_state)
     {
+        LOG_DEBUG("WebSocketSession::WebSocketSession()\n");
     }
 
     /// \brief Leaves the WebSocket Session.
     ~WebSocketSession()
     {
+        LOG_DEBUG("WebSocketSession::~WebSocketSession()\n");
         state_->leave(&derived());
     }
 
@@ -180,10 +182,11 @@ class WebSocketSession
         // on the I/O objects in this session. Although not strictly necessary
         // for single-threaded contexts, this example code is written to be
         // thread-safe by default.
-        asio::dispatch(derived().stream().get_executor(),
-                       [self = derived().shared_from_this(), _req] {
-                           self->onRun(std::move(_req));
-                       });
+        asio::dispatch(
+            derived().stream().get_executor(),
+            [self = derived().shared_from_this(), _req = std::move(_req)] {
+                self->onRun(std::move(_req));
+            });
     }
 
     /// \brief Sends a given message to all connected websocket sessions.

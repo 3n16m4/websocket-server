@@ -21,6 +21,8 @@ class PlainWebSocketSession
     explicit PlainWebSocketSession(beast::tcp_stream&& _stream,
                                    std::shared_ptr<SharedState> const& _state);
 
+    ~PlainWebSocketSession();
+
     /// \brief Returns the underlying WebSocket stream.
     /// \note Called by the base class.
     websocket::stream<beast::tcp_stream>& stream() noexcept;
