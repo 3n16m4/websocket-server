@@ -229,6 +229,12 @@ class HttpSession
     HttpSession(std::shared_ptr<SharedState> const& _state)
         : state_(_state)
     {
+        LOG_DEBUG("HttpSession::HttpSession()\n");
+    }
+
+    ~HttpSession()
+    {
+        LOG_DEBUG("HttpSession::~HttpSession()\n");
     }
 
     /// \brief Starts the asynchronous read operation.

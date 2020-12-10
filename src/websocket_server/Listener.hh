@@ -15,6 +15,7 @@
 
 #include <type_traits>
 #include <optional>
+#include <memory>
 
 namespace amadeus {
 /// \brief This class is responsible for accepting incoming connections. It is
@@ -24,13 +25,12 @@ namespace amadeus {
 /// each connection and making the connection itself inherit from
 /// enable_shared_from_this.
 template <typename Protocol>
-class Listener
+class Listener : public std::enable_shared_from_this<Listener<Protocol>>
 {
   protected:
     /// A reference to the main IO-Context.
     asio::io_context& io_;
     /// A reference to the main SSL-Context.
-    /// TODO: Dirty, change to optional_ref
     ssl::context* ctx_;
     /// The TCP acceptor.
     tcp::acceptor acceptor_;
@@ -45,10 +45,11 @@ class Listener
     {
         // Every new connections gets its own strand to make sure that their
         // handlers are not executed concurrently.
-        acceptor_.async_accept(asio::make_strand(io_),
-                               [this](auto&& ec, auto&& socket) {
-                                   onAccept(ec, std::move(socket));
-                               });
+        acceptor_.async_accept(
+            asio::make_strand(io_),
+            [self = this->shared_from_this()](auto&& ec, auto&& socket) {
+                self->onAccept(ec, std::move(socket));
+            });
     }
 
     /// \brief Called each time a new connection was accepted.
@@ -58,7 +59,7 @@ class Listener
             LOG_ERROR("Accept error: {}\n", _error.message());
             return;
         }
-        
+
         // Run the TCP / Http Listener and move ownership to it.
         if constexpr (std::is_same_v<Protocol, PlainHttpSession>) {
             std::make_shared<PlainHttpSession>(std::move(_socket), state_)
@@ -70,7 +71,8 @@ class Listener
             std::make_shared<PlainTCPSession>(io_, std::move(_socket), state_)
                 ->run();
         } else if constexpr (std::is_same_v<Protocol, SSLTCPSession>) {
-            std::make_shared<SSLTCPSession>(io_, std::move(_socket), *ctx_, state_)
+            std::make_shared<SSLTCPSession>(io_, std::move(_socket), *ctx_,
+                                            state_)
                 ->run();
         }
 
@@ -91,6 +93,11 @@ class Listener
         , endpoint_(std::move(_endpoint))
         , state_(_state)
     {
+    }
+
+    ~Listener()
+    {
+        LOG_DEBUG("Listener::~Listener()\n");
     }
 
     /// \brief Starts the listener and accepting incoming connections.

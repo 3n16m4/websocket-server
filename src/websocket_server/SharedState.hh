@@ -11,7 +11,6 @@
 #include <unordered_map>
 #include <vector>
 
-/// TODO: Join TCP Connections here.
 namespace amadeus {
 /// \brief This class is responsible for keeping track of all connected
 /// websocket sessions. It provides functions for joining, leaving sessions and
@@ -80,6 +79,8 @@ class SharedState
     /// \brief Constructor.
     /// \param _docRoot The document resources directory.
     explicit SharedState(std::string _docRoot, JSON const& _config);
+
+    ~SharedState();
 
     /// \brief Returns the document root.
     std::string const& docRoot() const noexcept;

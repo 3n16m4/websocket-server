@@ -9,12 +9,12 @@ PlainHttpSession::PlainHttpSession(tcp::socket&& _socket,
     : HttpSession<PlainHttpSession>(_state)
     , stream_(std::move(_socket))
 {
-    LOG_DEBUG("PlainHttpSession::PlainHttpSession\n");
+    LOG_DEBUG("PlainHttpSession::PlainHttpSession()\n");
 }
 
 PlainHttpSession::~PlainHttpSession()
 {
-    LOG_DEBUG("PlainHttpSession::~PlainHttpSession\n");
+    LOG_DEBUG("PlainHttpSession::~PlainHttpSession()\n");
 }
 
 beast::tcp_stream& PlainHttpSession::stream() noexcept

@@ -1,4 +1,5 @@
 #include "websocket_server/PlainWebSocketSession.hh"
+#include "websocket_server/Logger.hh"
 
 using namespace amadeus;
 
@@ -7,6 +8,12 @@ PlainWebSocketSession::PlainWebSocketSession(
     : WebSocketSession<PlainWebSocketSession>(_state)
     , ws_(std::move(_stream))
 {
+    LOG_DEBUG("PlainWebSocketSession::PlainWebSocketSession()\n");
+}
+
+PlainWebSocketSession::~PlainWebSocketSession()
+{
+    LOG_DEBUG("PlainWebSocketSession::~PlainWebSocketSession()\n");
 }
 
 websocket::stream<beast::tcp_stream>& PlainWebSocketSession::stream() noexcept

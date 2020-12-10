@@ -49,29 +49,27 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    // Create and launch the HTTP listeners.
-    PlainHttpListener plainHttpListener{
-        io, nullptr, tcp::endpoint{cli.ip, cli.httpPort},
-        std::make_shared<SharedState>(std::move(cli.docRoot), cli.config)};
-
-    SSLHttpListener sslHttpListener{
-        io, &ctx, tcp::endpoint{cli.ip, cli.httpsPort},
-        std::make_shared<SharedState>(std::move(cli.docRoot), cli.config)};
-
-    // Create and launch the TCP listeners.
-    PlainTCPListener plainTCPListener{
-        io, nullptr, tcp::endpoint{cli.ip, cli.tcpPort},
-        std::make_shared<SharedState>(std::move(cli.docRoot), cli.config)};
-
-    SSLTCPListener sslTCPListener{
-        io, &ctx, tcp::endpoint{cli.ip, cli.tcpSecurePort},
-        std::make_shared<SharedState>(std::move(cli.docRoot), cli.config)};
+    auto const state =
+        std::make_shared<SharedState>(std::move(cli.docRoot), cli.config);
 
     try {
-        plainHttpListener.run();
-        sslHttpListener.run();
-        plainTCPListener.run();
-        sslTCPListener.run();
+        // Create and launch the HTTP listeners.
+        std::make_shared<PlainHttpListener>(
+            io, nullptr, tcp::endpoint{cli.ip, cli.httpPort}, state)
+            ->run();
+
+        std::make_shared<SSLHttpListener>(
+            io, &ctx, tcp::endpoint{cli.ip, cli.httpsPort}, state)
+            ->run();
+
+        // Create and launch the TCP listeners.
+        std::make_shared<PlainTCPListener>(
+            io, nullptr, tcp::endpoint{cli.ip, cli.tcpPort}, state)
+            ->run();
+
+        std::make_shared<SSLTCPListener>(
+            io, &ctx, tcp::endpoint{cli.ip, cli.tcpSecurePort}, state)
+            ->run();
     } catch (boost::system::system_error const& e) {
         LOG_FATAL("{}\n", e.what());
         io.stop();
