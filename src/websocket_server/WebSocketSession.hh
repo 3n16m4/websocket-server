@@ -29,7 +29,7 @@ class SharedState;
 template <class Derived>
 class WebSocketSession
 {
-  protected:
+  private:
     /// The shared state.
     std::shared_ptr<SharedState> state_;
     /// The underlying buffer for requests.
