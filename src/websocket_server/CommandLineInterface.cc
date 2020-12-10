@@ -42,6 +42,10 @@ void CommandLineInterface::parse(int _argc, char* _argv[])
         config = JSON::parse(file);
         LOG_INFO("Config file '{}' successfully loaded with contents:\n{}\n",
                  configFile, config.dump(4));
+		certChain = config["certChain"].get<std::string_view>();
+		privKey = config["privKey"].get<std::string_view>();
+
+		LOG_INFO("certChain = {}\nprivKey = {}\n", certChain, privKey);
     } catch (std::runtime_error const&) {
         throw;
     }

@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
 
     /// Load self-signed certificate for the server.
     try {
-        loadServerCertificate(ctx);
+        loadServerCertificate(ctx, cli.certChain, cli.privKey);
     } catch (boost::system::system_error const& e) {
         LOG_FATAL("{}\n", e.what());
         return EXIT_FAILURE;

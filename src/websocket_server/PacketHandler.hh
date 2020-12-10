@@ -163,7 +163,7 @@ class PacketHandler
         auto const isUUIDRegistered =
             [this](std::string_view _uuid) noexcept -> bool {
             auto const& config = session_.sharedState().config();
-            for (auto const& e : config) {
+            for (auto const& e : config["uuids"]) {
                 auto const uuidView =
                     e["uuid"].template get<std::string_view>();
                 if (_uuid == uuidView) {
@@ -210,11 +210,9 @@ class PacketHandler
 
         LOG_INFO("handlePongPacket called with view: {}.\n", packet);
 
-        // restart the pong timer, indicating that the client sent the packet in
-        // the right time and we can wait for the next timeout.
-        restartPongTimer();
+		pongTimer_.cancel();
 
-        return std::make_pair(ResultType::Good, 0);
+        return std::make_pair(ResultType::Good, packet.size());
     }
 
     HandlerReturnType handleWeatherStatusPacket(BufferView const _view) const
@@ -223,7 +221,7 @@ class PacketHandler
 
         LOG_INFO("handleWeatherStatusPacket called with view: {}\n", packet);
 
-        return std::make_pair(ResultType::Good, 0);
+        return std::make_pair(ResultType::Good, packet.size());
     }
 
     void startPingTimer()
@@ -236,6 +234,7 @@ class PacketHandler
 
     void startPongTimer()
     {
+		pongTimer_.expires_after(PongTimeout);
         pongTimer_.async_wait(
             [this, self = session_.derived().shared_from_this()](auto&& _error) {
                 onPongTimeout(_error);
@@ -262,7 +261,7 @@ class PacketHandler
 
         out::PingPacket const packet{};
         session_.writePacket(packet, [this](auto&& bytes_transferred) {
-            LOG_INFO("PingPacket send with {} bytes.\n", bytes_transferred);
+            LOG_INFO("PingPacket sent with {} bytes.\n", bytes_transferred);
         });
 
         startPongTimer();
@@ -272,7 +271,6 @@ class PacketHandler
     void onPongTimeout(boost::system::error_code const& _error)
     {
         if (_error == asio::error::operation_aborted) {
-			LOG_DEBUG("PongTimer was cancelled.\n");
             return;
         }
 

@@ -9,7 +9,7 @@ using namespace std::chrono_literals;
 
 namespace amadeus {
 /// The read / write / shutdown timeout for the asynchronous operations.
-auto constexpr Timeout{30s};
+auto constexpr Timeout{60s};
 /// The Handshake timeout for websockets.
 auto constexpr HandshakeTimeout{30s};
 /// The idle timeout for websockets.
