@@ -23,12 +23,12 @@ RUN apt-get update \
 
 # Build project
 COPY . /cpp/src/project/
-WORKDIR /cpp/src/project/build/
+WORKDIR /cpp/src/project/
 
 RUN export CC=/usr/bin/clang && export CXX=/usr/bin/clang++ \
-   && cmake .. -GNinja -DCMAKE_BUILD_TYPE=Release \
+   && cmake . -GNinja -DCMAKE_BUILD_TYPE=Release \
    && cmake --build .
 
-ENTRYPOINT ["./websocket-server", "0.0.0.0", "8080", "8081", "9090", "9091", "../www", "../config/config.json", "8"]
+ENTRYPOINT ["./websocket-server", "0.0.0.0", "8080", "8081", "9090", "9091", "www", "config/config.json", "8"]
 
 EXPOSE 8080 8081 9090 9091
