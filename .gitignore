@@ -40,3 +40,5 @@ CMakeSettings.json
 
 #project specific files
 server_log.txt
+
+*.pem
