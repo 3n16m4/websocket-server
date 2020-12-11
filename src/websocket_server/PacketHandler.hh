@@ -210,7 +210,7 @@ class PacketHandler
 
         LOG_INFO("handlePongPacket called with view: {}.\n", packet);
 
-		pongTimer_.cancel();
+        pongTimer_.cancel();
 
         return std::make_pair(ResultType::Good, packet.size());
     }
@@ -227,18 +227,16 @@ class PacketHandler
     void startPingTimer()
     {
         pingTimer_.async_wait(
-            [this, self = session_.derived().shared_from_this()](auto&& _error) {
-                onPingTimeout(_error);
-            });
+            [this, self = session_.derived().shared_from_this()](
+                auto&& _error) { onPingTimeout(_error); });
     }
 
     void startPongTimer()
     {
-		pongTimer_.expires_after(PongTimeout);
+        pongTimer_.expires_after(PongTimeout);
         pongTimer_.async_wait(
-            [this, self = session_.derived().shared_from_this()](auto&& _error) {
-                onPongTimeout(_error);
-            });
+            [this, self = session_.derived().shared_from_this()](
+                auto&& _error) { onPongTimeout(_error); });
     }
 
     void restartPingTimer()

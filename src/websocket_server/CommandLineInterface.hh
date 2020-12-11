@@ -33,10 +33,10 @@ struct CommandLineInterface
     JSON config;
     /// The amount of threads the server will utilize.
     std::uint32_t threads;
-	/// The server certificate chain.
-	std::string_view certChain;
-	/// The server private key.
-	std::string_view privKey;
+    /// The server certificate chain.
+    std::string_view certChain;
+    /// The server private key.
+    std::string_view privKey;
 
     void parse(int _argc, char* _argv[]);
 };

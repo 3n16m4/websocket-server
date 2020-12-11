@@ -27,8 +27,8 @@ class SharedState
   private:
     /// The document root.
     std::string const docRoot_;
-	/// The JSON config.
-	JSON const& config_;
+    /// The JSON config.
+    JSON const& config_;
     /// Protects the sessions list.
     std::mutex mtx_;
     /// A set to track all plain websockets.
@@ -85,8 +85,8 @@ class SharedState
     /// \brief Returns the document root.
     std::string const& docRoot() const noexcept;
 
-	/// \brief Returns the JSON config.
-	JSON const& config() const noexcept;
+    /// \brief Returns the JSON config.
+    JSON const& config() const noexcept;
 
     /// \brief Join a PlainWebSocketSession and insert it into the list.
     /// \param _session The PlainWebSocketSession pointer.
@@ -100,13 +100,13 @@ class SharedState
 
     /// \brief Join a PlainTCPSession and insert it into the lsit.
     /// \param _session The PlainTCPSession pointer.
-	/// \param _id The StationId.
+    /// \param _id The StationId.
     /// \remarks Thread-Safe.
     bool join(StationId _id, PlainTCPSession* _session);
-	
+
     /// \brief Join a SSLTCPSession and insert it into the lsit.
     /// \param _session The SSLTCPSession pointer.
-	/// \param _id The StationId.
+    /// \param _id The StationId.
     /// \remarks Thread-Safe.
     bool join(StationId _id, SSLTCPSession* _session);
 
@@ -120,17 +120,17 @@ class SharedState
     /// \remarks Thread-Safe.
     void leave(SSLWebSocketSession* _session);
 
-	template <typename SessionType>
-	void leave(StationId _id)
-	{
-		std::scoped_lock<std::mutex> lk(mtx_);
+    template <typename SessionType>
+    void leave(StationId _id)
+    {
+        std::scoped_lock<std::mutex> lk(mtx_);
 
-		if constexpr (std::is_same_v<SessionType, PlainTCPSession>) {
-			plain_tcp_sessions_.erase(_id);
-		} else if constexpr (std::is_same_v<SessionType, SSLTCPSession>) {
-			ssl_tcp_sessions_.erase(_id);
-		}
-	}
+        if constexpr (std::is_same_v<SessionType, PlainTCPSession>) {
+            plain_tcp_sessions_.erase(_id);
+        } else if constexpr (std::is_same_v<SessionType, SSLTCPSession>) {
+            ssl_tcp_sessions_.erase(_id);
+        }
+    }
 
     /// \brief Broadcast a message to all connected websocket sessions from the
     /// list.

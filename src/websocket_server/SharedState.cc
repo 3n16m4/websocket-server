@@ -77,4 +77,3 @@ void SharedState::leave(SSLWebSocketSession* _session)
     std::scoped_lock<std::mutex> lk(mtx_);
     ssl_sessions_.erase(_session);
 }
-

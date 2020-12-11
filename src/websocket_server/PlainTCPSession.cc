@@ -41,7 +41,7 @@ void PlainTCPSession::disconnect()
     }
 
     stream_.socket().close(ec);
-    
+
     if (ec) {
         LOG_ERROR("close error: {}\n", ec.message());
     }
