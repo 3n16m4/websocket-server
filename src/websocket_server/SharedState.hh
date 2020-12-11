@@ -78,7 +78,7 @@ class SharedState
   public:
     /// \brief Constructor.
     /// \param _docRoot The document resources directory.
-    explicit SharedState(std::string _docRoot, JSON const& _config);
+    SharedState(std::string _docRoot, JSON const& _config);
 
     ~SharedState();
 

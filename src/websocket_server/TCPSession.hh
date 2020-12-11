@@ -53,8 +53,8 @@ class TCPSession
     {
         if (_error == asio::error::eof ||
             _error == asio::error::connection_reset) {
-            /// TODO: onDisconnected
             LOG_ERROR("Read error: Connection was closed by remote endpoint\n");
+			handler_.stop();
             return;
         }
         if (_error == asio::error::operation_aborted ||
@@ -137,9 +137,8 @@ class TCPSession
 
   public:
     /// \brief Creates a TCPSession.
-    TCPSession(asio::io_context& _ioc,
-               std::shared_ptr<SharedState> const& _state)
-        : state_(_state)
+    TCPSession(asio::io_context& _ioc, std::shared_ptr<SharedState> _state)
+        : state_(std::move(_state))
         , handler_(_ioc, *this)
     {
     }

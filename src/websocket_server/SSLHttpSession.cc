@@ -5,8 +5,8 @@
 using namespace amadeus;
 
 SSLHttpSession::SSLHttpSession(tcp::socket&& _socket, ssl::context& _ctx,
-                               std::shared_ptr<SharedState> const& _state)
-    : HttpSession<SSLHttpSession>(_state)
+                               std::shared_ptr<SharedState> _state)
+    : HttpSession<SSLHttpSession>(std::move(_state))
     , stream_(std::move(_socket), _ctx)
 {
     LOG_DEBUG("SSLHttpSession::SSLHttpSession()\n");

@@ -53,7 +53,7 @@ class PacketHandler
     using BufferView = asio::const_buffer;
 
     /// \brief Constructor.
-    explicit PacketHandler(asio::io_context& _ioc, Session& _session)
+    PacketHandler(asio::io_context& _ioc, Session& _session)
         : session_(_session)
         , pingTimer_(_ioc, PingTimeout)
         , pongTimer_(_ioc, PongTimeout)
@@ -96,6 +96,15 @@ class PacketHandler
         }
 
         return std::make_pair(ResultType::Bad, 0);
+    }
+
+    void stop()
+    {
+        pingTimer_.cancel();
+        pongTimer_.cancel();
+
+        auto& session = session_.derived();
+        session.disconnect();
     }
 
   private:

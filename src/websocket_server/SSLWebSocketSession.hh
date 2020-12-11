@@ -19,8 +19,8 @@ class SSLWebSocketSession
 
   public:
     /// \brief Constructor. Creates the SSL WebSocketSession.
-    explicit SSLWebSocketSession(beast::ssl_stream<beast::tcp_stream>&& _stream,
-                                 std::shared_ptr<SharedState> const& _state);
+    SSLWebSocketSession(beast::ssl_stream<beast::tcp_stream>&& _stream,
+                        std::shared_ptr<SharedState> _state);
 
     /// \brief Returns the underlying SSL WebSocket stream.
     /// \note Called by the base class.

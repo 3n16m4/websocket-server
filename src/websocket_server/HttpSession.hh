@@ -226,8 +226,8 @@ class HttpSession
 
   public:
     /// \brief Constructor.
-    HttpSession(std::shared_ptr<SharedState> const& _state)
-        : state_(_state)
+    HttpSession(std::shared_ptr<SharedState> _state)
+        : state_(std::move(_state))
     {
         LOG_DEBUG("HttpSession::HttpSession()\n");
     }

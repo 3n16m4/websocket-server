@@ -17,7 +17,7 @@ class PlainHttpSession
   public:
     /// \brief Create a plain HTTP Session.
     PlainHttpSession(tcp::socket&& _socket,
-                     std::shared_ptr<SharedState> const& _state);
+                     std::shared_ptr<SharedState> _state);
 
     ~PlainHttpSession();
 

@@ -5,8 +5,8 @@ using namespace amadeus;
 
 /// \brief Create a plain HTTP Session.
 PlainHttpSession::PlainHttpSession(tcp::socket&& _socket,
-                                   std::shared_ptr<SharedState> const& _state)
-    : HttpSession<PlainHttpSession>(_state)
+                                   std::shared_ptr<SharedState> _state)
+    : HttpSession<PlainHttpSession>(std::move(_state))
     , stream_(std::move(_socket))
 {
     LOG_DEBUG("PlainHttpSession::PlainHttpSession()\n");
