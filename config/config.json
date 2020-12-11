@@ -1,6 +1,6 @@
 {
-	"certChain": "../config/fullchain.pem",
-	"privKey": "../config/privkey.pem",
+	"certChain": "fullchain.pem",
+	"privKey": "privkey.pem",
 	"uuids": [{
 		"uuid": "a851173e-8264-4b35-80e2-80017112cc9d"
 	}]
