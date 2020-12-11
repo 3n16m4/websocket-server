@@ -52,25 +52,26 @@ int main(int argc, char* argv[])
     auto const state =
         std::make_shared<SharedState>(std::move(cli.docRoot), cli.config);
 
+    // Create and launch the HTTP listeners.
+    auto plainHttpListener = std::make_shared<PlainHttpListener>(
+        io, nullptr, tcp::endpoint{cli.ip, cli.httpPort}, state);
+
+    auto sslHttpListener = std::make_shared<SSLHttpListener>(
+        io, &ctx, tcp::endpoint{cli.ip, cli.httpsPort}, state);
+
+    // Create and launch the TCP listeners.
+    auto plainTCPListener = std::make_shared<PlainTCPListener>(
+        io, nullptr, tcp::endpoint{cli.ip, cli.tcpPort}, state);
+
+    auto sslTCPListener = std::make_shared<SSLTCPListener>(
+        io, &ctx, tcp::endpoint{cli.ip, cli.tcpSecurePort}, state);
+
     try {
-        // Create and launch the HTTP listeners.
-        std::make_shared<PlainHttpListener>(
-            io, nullptr, tcp::endpoint{cli.ip, cli.httpPort}, state)
-            ->run();
-
-        std::make_shared<SSLHttpListener>(
-            io, &ctx, tcp::endpoint{cli.ip, cli.httpsPort}, state)
-            ->run();
-
-        // Create and launch the TCP listeners.
-        std::make_shared<PlainTCPListener>(
-            io, nullptr, tcp::endpoint{cli.ip, cli.tcpPort}, state)
-            ->run();
-
-        std::make_shared<SSLTCPListener>(
-            io, &ctx, tcp::endpoint{cli.ip, cli.tcpSecurePort}, state)
-            ->run();
-    } catch (boost::system::system_error const& e) {
+        plainHttpListener->run();
+        sslHttpListener->run();
+        plainTCPListener->run();
+        sslTCPListener->run();
+    } catch (std::exception const& e) {
         LOG_FATAL("{}\n", e.what());
         io.stop();
         return EXIT_FAILURE;
@@ -105,7 +106,7 @@ int main(int argc, char* argv[])
     io.run();
 
     // Wait for the threads to finish.
-    for (auto&& t : threads) {
+    for (auto& t : threads) {
         t.join();
     }
 
