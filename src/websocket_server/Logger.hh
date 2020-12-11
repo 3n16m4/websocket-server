@@ -71,7 +71,7 @@ class Logger final
 {
   public:
     Logger() = default;
-    explicit Logger(std::string const& _filename, bool _console = true);
+    Logger(std::string const& _filename, bool _console = true);
 
     static Logger& instance() noexcept;
 

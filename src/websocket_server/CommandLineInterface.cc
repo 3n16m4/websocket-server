@@ -18,9 +18,8 @@ void CommandLineInterface::parse(int _argc, char* _argv[])
             "Usage: {0} <address> <httpPort> <httpsPort> <tcpPort> "
             "<tcpSecurePort> <config> <threads>.\nExample: {0} 127.0.0.1 8080 "
             "8081 9090 9091 ../www ../config/config.json 8\nYou may also set "
-            "<threads> to 0 to "
-            "enable full "
-            "utilization of the hardware threads.",
+            "<threads> to 0 to enable full utilization of the hardware "
+            "threads.",
             _argv[0]));
     }
     ip = asio::ip::make_address(_argv[1]);
@@ -38,14 +37,21 @@ void CommandLineInterface::parse(int _argc, char* _argv[])
             fmt::format("The specified file '{}' does not exist.", configFile));
     }
 
+    std::string configPath{};
+    if (auto const pos = configFile.find_last_of('/');
+        pos != std::string::npos) {
+        configPath.assign(configFile.substr(0, pos));
+    }
+
     try {
         config = JSON::parse(file);
+        certChain = fmt::format("{}/{}", configPath,
+                                config["certChain"].get<std::string>());
+        privKey = fmt::format("{}/{}", configPath,
+                              config["privKey"].get<std::string>());
+
         LOG_INFO("Config file '{}' successfully loaded with contents:\n{}\n",
                  configFile, config.dump(4));
-		certChain = config["certChain"].get<std::string_view>();
-		privKey = config["privKey"].get<std::string_view>();
-
-		LOG_INFO("certChain = {}\nprivKey = {}\n", certChain, privKey);
     } catch (std::runtime_error const&) {
         throw;
     }

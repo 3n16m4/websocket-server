@@ -4,8 +4,8 @@
 using namespace amadeus;
 
 PlainTCPSession::PlainTCPSession(asio::io_context& _ioc, tcp::socket&& _socket,
-                                 std::shared_ptr<SharedState> const& _state)
-    : TCPSession<PlainTCPSession>(_ioc, _state)
+                                 std::shared_ptr<SharedState> _state)
+    : TCPSession<PlainTCPSession>(_ioc, std::move(_state))
     , stream_(std::move(_socket))
 {
     LOG_DEBUG("PlainTCPSession::PlainTCPSession()\n");
@@ -41,7 +41,7 @@ void PlainTCPSession::disconnect()
     }
 
     stream_.socket().close(ec);
-    
+
     if (ec) {
         LOG_ERROR("close error: {}\n", ec.message());
     }

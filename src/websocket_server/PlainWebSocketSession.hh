@@ -18,8 +18,8 @@ class PlainWebSocketSession
 
   public:
     /// \brief Constructor. Creates the Plain WebSocketSession.
-    explicit PlainWebSocketSession(beast::tcp_stream&& _stream,
-                                   std::shared_ptr<SharedState> const& _state);
+    PlainWebSocketSession(beast::tcp_stream&& _stream,
+                          std::shared_ptr<SharedState> _state);
 
     ~PlainWebSocketSession();
 

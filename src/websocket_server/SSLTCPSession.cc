@@ -8,8 +8,8 @@ using namespace amadeus;
 
 SSLTCPSession::SSLTCPSession(asio::io_context& _ioc, tcp::socket&& _socket,
                              ssl::context& _ctx,
-                             std::shared_ptr<SharedState> const& _state)
-    : TCPSession<SSLTCPSession>(_ioc, _state)
+                             std::shared_ptr<SharedState> _state)
+    : TCPSession<SSLTCPSession>(_ioc, std::move(_state))
     , stream_(std::move(_socket), _ctx)
 {
     LOG_DEBUG("SSLTCPSession::SSLTCPSession()\n");

@@ -28,7 +28,7 @@ class SSLHttpSession
 
   public:
     SSLHttpSession(tcp::socket&& _socket, ssl::context& _ctx,
-                   std::shared_ptr<SharedState> const& _state);
+                   std::shared_ptr<SharedState> _state);
 
     ~SSLHttpSession();
 

@@ -161,8 +161,8 @@ class WebSocketSession
 
   public:
     /// \brief Creates a WebSocket Session.
-    explicit WebSocketSession(std::shared_ptr<SharedState> const& _state)
-        : state_(_state)
+    explicit WebSocketSession(std::shared_ptr<SharedState> _state)
+        : state_(std::move(_state))
     {
         LOG_DEBUG("WebSocketSession::WebSocketSession()\n");
     }
@@ -201,8 +201,6 @@ class WebSocketSession
                        self->onSend(_message);
                    });
     }
-
-  protected:
 };
 } // namespace amadeus
 

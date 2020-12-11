@@ -25,7 +25,7 @@ namespace amadeus {
 /// each connection and making the connection itself inherit from
 /// enable_shared_from_this.
 template <typename Protocol>
-class Listener : public std::enable_shared_from_this<Listener<Protocol>>
+class Listener
 {
   protected:
     /// A reference to the main IO-Context.
@@ -45,11 +45,10 @@ class Listener : public std::enable_shared_from_this<Listener<Protocol>>
     {
         // Every new connections gets its own strand to make sure that their
         // handlers are not executed concurrently.
-        acceptor_.async_accept(
-            asio::make_strand(io_),
-            [self = this->shared_from_this()](auto&& ec, auto&& socket) {
-                self->onAccept(ec, std::move(socket));
-            });
+        acceptor_.async_accept(asio::make_strand(io_),
+                               [this](auto&& ec, auto&& socket) {
+                                   onAccept(ec, std::move(socket));
+                               });
     }
 
     /// \brief Called each time a new connection was accepted.
@@ -86,12 +85,12 @@ class Listener : public std::enable_shared_from_this<Listener<Protocol>>
     /// \param _ctx A reference to the main SSL-Context.
     /// \param _endpoint The endpoint to which the tcp acceptor will listen to.
     Listener(asio::io_context& _io, ssl::context* _ctx, tcp::endpoint _endpoint,
-             std::shared_ptr<SharedState> const& _state)
+             std::shared_ptr<SharedState> _state)
         : io_(_io)
         , ctx_(_ctx)
         , acceptor_(asio::make_strand(_io))
         , endpoint_(std::move(_endpoint))
-        , state_(_state)
+        , state_(std::move(_state))
     {
     }
 

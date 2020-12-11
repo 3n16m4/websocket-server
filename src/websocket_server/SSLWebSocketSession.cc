@@ -4,8 +4,8 @@ using namespace amadeus;
 
 SSLWebSocketSession::SSLWebSocketSession(
     beast::ssl_stream<beast::tcp_stream>&& _stream,
-    std::shared_ptr<SharedState> const& _state)
-    : WebSocketSession<SSLWebSocketSession>(_state)
+    std::shared_ptr<SharedState> _state)
+    : WebSocketSession<SSLWebSocketSession>(std::move(_state))
     , ws_(std::move(_stream))
 {
 }

@@ -4,8 +4,8 @@
 using namespace amadeus;
 
 PlainWebSocketSession::PlainWebSocketSession(
-    beast::tcp_stream&& _stream, std::shared_ptr<SharedState> const& _state)
-    : WebSocketSession<PlainWebSocketSession>(_state)
+    beast::tcp_stream&& _stream, std::shared_ptr<SharedState> _state)
+    : WebSocketSession<PlainWebSocketSession>(std::move(_state))
     , ws_(std::move(_stream))
 {
     LOG_DEBUG("PlainWebSocketSession::PlainWebSocketSession()\n");
