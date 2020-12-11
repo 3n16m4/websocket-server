@@ -113,7 +113,7 @@ class TCPSession
                 return doReadPacketHeader();
             } break;
             case ResultType::Bad: {
-                derived().disconnect();
+                return derived().disconnect();
             } break;
             case ResultType::Indeterminate: {
                 auto const packetName = in::packetNameById(id);
