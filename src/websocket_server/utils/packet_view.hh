@@ -44,17 +44,6 @@ class packet_view final
     using const_iterator = value_type const*;
 
   public:
-    constexpr explicit packet_view(void const* _data,
-                                   value_size_type _size) noexcept
-        : data_(static_cast<value_type const*>(_data))
-        , size_(_size)
-    {
-        static_assert(std::is_class_v<PacketType>,
-                      "Packet needs to be a struct or class.");
-        static_assert(std::is_trivially_copyable_v<PacketType>,
-                      "Packet needs to be trivially copyable.");
-    }
-
     constexpr explicit packet_view(void const* _data) noexcept
         : data_(static_cast<value_type const*>(_data))
         , size_(sizeof(PacketType))
@@ -65,37 +54,37 @@ class packet_view final
                       "Packet needs to be trivially copyable.");
     }
 
-    constexpr iterator begin() noexcept
+    [[nodiscard]] constexpr iterator begin() noexcept
     {
         return iterator(data_);
     }
 
-    constexpr const_iterator begin() const noexcept
+    [[nodiscard]] constexpr const_iterator begin() const noexcept
     {
         return const_iterator(data_);
     }
 
-    constexpr iterator end() noexcept
+    [[nodiscard]] constexpr iterator end() noexcept
     {
         return iterator(data_ + size_);
     }
 
-    constexpr const_iterator end() const noexcept
+    [[nodiscard]] constexpr const_iterator end() const noexcept
     {
         return const_iterator(data_ + size_);
     }
 
-    constexpr PacketType const& operator*() const noexcept
+    [[nodiscard]] constexpr PacketType const& operator*() const noexcept
     {
-        return *reinterpret_cast<PacketType>(const_cast<value_type*>(data_));
+        return *reinterpret_cast<PacketType const>(data_);
     }
 
-    constexpr PacketType const* operator->() const noexcept
+    [[nodiscard]] constexpr PacketType const* operator->() const noexcept
     {
-        return reinterpret_cast<PacketType*>(const_cast<value_type*>(data_));
+        return reinterpret_cast<PacketType const*>(data_);
     }
 
-    constexpr value_type const* data() const noexcept
+    [[nodiscard]] constexpr value_type const* data() const noexcept
     {
         return data_;
     }
