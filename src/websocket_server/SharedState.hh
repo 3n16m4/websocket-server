@@ -132,11 +132,31 @@ class SharedState
         }
     }
 
+    /// TODO:
     // only applies for TCP Sessions
     template <typename SessionType>
     std::shared_ptr<SessionType> findStation(StationId _key)
     {
         return nullptr;
+    }
+
+    std::vector<StationId> allStationIds()
+    {
+        std::vector<StationId> ids;
+
+        std::scoped_lock<std::mutex> lk(mtx_);
+        {
+            ids.reserve(plain_tcp_sessions_.size() + ssl_tcp_sessions_.size());
+
+            for (auto const& [stationId, _] : plain_tcp_sessions_) {
+                ids.emplace_back(stationId);
+            }
+            for (auto const& [stationId, _] : ssl_tcp_sessions_) {
+                ids.emplace_back(stationId);
+            }
+        }
+
+        return ids;
     }
 
     /// \brief Broadcast a message to all connected websocket sessions from the

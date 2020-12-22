@@ -21,11 +21,22 @@ typedef struct ping_packet
 {
     uint8_t header;
 } ping_packet_t;
+typedef struct weather_status_request_packet
+{
+    uint8_t header;
+} weather_status_request_packet_t;
+
 // out
 typedef struct pong_packet
 {
     uint8_t header;
 } pong_packet_t;
+typedef struct weather_status_response_packet
+{
+    uint8_t header;
+    float temperature; // -40 - 80°C
+    float humidity;    // 0 - 100%
+} weather_status_response_packet_t;
 #pragma pack(pop)
 
 int input_timeout(int filedes, unsigned int seconds)
@@ -103,7 +114,7 @@ int main()
             printf("handshake received\n");
             handshake_packet_t packet = {
                 .header = 0x00,
-                .station_id = 0x00,
+                .station_id = 0x01,
                 .uuid = {0xa8, 0x51, 0x17, 0x3e, 0x82, 0x64, 0x4b, 0x35, 0x80,
                          0xe2, 0x80, 0x01, 0x71, 0x12, 0xcc, 0x9d}};
 
@@ -122,9 +133,22 @@ int main()
         case 0x03: {
             printf("ping received\n");
 
-			pong_packet_t packet = {.header = 0x01};
+            pong_packet_t packet = {.header = 0x01};
             bytes = send(sockfd, (const void*)&packet, sizeof(packet), 0);
             printf("sent pong packet %zu bytes.\n", bytes);
+        } break;
+            // weather_status request
+        case 0x04: {
+            printf("weather_status request received\n");
+
+            // simulate a sensor read
+            sleep(1);
+            // send data
+            weather_status_response_packet_t response = {.header = 0x02,
+                                                       .humidity = 67.3f};
+
+            bytes = send(sockfd, (const void*)&response, sizeof(response), 0);
+            printf("sent weather status packet %zu bytes.\n", bytes);
         } break;
         }
     }
