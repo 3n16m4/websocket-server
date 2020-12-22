@@ -152,7 +152,11 @@ class WebSocketRequestHandler
 
         LOG_INFO("Response for AvailableStationsRequest = {}\n", response);
 
-        // TODO: write reponse
+        session_.writeRequest(
+            std::move(response), [this](auto&& bytes_transferred) {
+                LOG_INFO("AvailableStationsRequest sent with {} bytes.\n",
+                         bytes_transferred);
+            });
 
         return std::make_pair(ResultType::Good, _size);
     }

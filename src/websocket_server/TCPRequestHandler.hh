@@ -247,9 +247,9 @@ class TCPRequestHandler
         out::PingPacket const packet{};
         session_.writePacket(packet, [this](auto&& bytes_transferred) {
             LOG_INFO("PingPacket sent with {} bytes.\n", bytes_transferred);
+            startPongTimer();
         });
 
-        startPongTimer();
         restartPingTimer();
     }
 

@@ -228,6 +228,26 @@ class WebSocketSession
         return *state_.get();
     };
 
+    template <typename CompletionHandler>
+    void writeRequest(JSON _request, CompletionHandler&& _handler)
+    {
+        // make sure the data is kept alive until it is fully sent
+        auto payload = std::move(_request);
+        auto const sp = std::make_shared<std::string>(payload.dump());
+
+        auto& ws = derived().stream();
+        ws.async_write(
+            asio::buffer(*sp), [self = derived().shared_from_this(),
+                                _handler = std::move(_handler)](
+                                   auto&& error, auto&& bytes_transferred) {
+                if (error) {
+                    LOG_ERROR("WS write error: {}\n", error.message());
+                    return;
+                }
+                _handler(bytes_transferred);
+            });
+    }
+
     /// \brief Start the asynchronous operation.
     template <class Body, class Allocator>
     void run(http::request<Body, http::basic_fields<Allocator>> _req)
