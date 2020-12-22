@@ -4,7 +4,7 @@
 #include "websocket_server/asiofwd.hh"
 #include "websocket_server/Common.hh"
 #include "websocket_server/Logger.hh"
-#include "websocket_server/PacketHandler.hh"
+#include "websocket_server/TCPRequestHandler.hh"
 #include "websocket_server/SharedState.hh"
 
 #include <boost/asio/read.hpp>
@@ -32,7 +32,7 @@ class TCPSession
     /// The maximum amount of bytes for the output buffer.
     static constexpr auto MaxOutputSize{512U};
 
-    using PacketHandlerType = PacketHandler<class TCPSession>;
+    using PacketHandlerType = TCPRequestHandler<class TCPSession>;
 
     /// The shared state.
     std::shared_ptr<SharedState> state_;
@@ -42,8 +42,8 @@ class TCPSession
     std::array<char, MaxOutputSize> output_{};
     /// The number of bytes we have left to read.
     std::size_t numBytesLeft_{};
-    /// The underlying PacketHandler for the µc-connection.
-    PacketHandler<TCPSession> handler_;
+    /// The underlying TCPRequestHandler for the µc-connection.
+    TCPRequestHandler<TCPSession> handler_;
     /// Each session is uniquely identified with the StationId.
     StationId stationId_;
 
@@ -51,20 +51,26 @@ class TCPSession
     void onReadPacketHeader(beast::error_code const& _error,
                             std::size_t _bytesTransferred)
     {
+        if (_error) {
+            handler_.stop();
+        }
+
         if (_error == asio::error::eof ||
             _error == asio::error::connection_reset) {
             LOG_ERROR("Read error: Connection was closed by remote endpoint\n");
-			handler_.stop();
+			// handler_.stop();
             return;
         }
         if (_error == asio::error::operation_aborted ||
             _error == asio::error::connection_aborted) {
             LOG_ERROR("Read error: Connection was closed by remote endpoint "
                       "due to a timeout.\n");
+            // handler_.stop();
             return;
         }
         if (_error) {
             LOG_ERROR("Read error: {}\n", _error.message());
+            // handler_.stop();
             return;
         }
 
@@ -101,15 +107,13 @@ class TCPSession
             // Update the number of bytes we have left to read.
             numBytesLeft_ -= bytesParsed;
 
-            using ResultType = typename PacketHandlerType::ResultType;
-
             switch (status) {
             case ResultType::Good: {
                 // do we still need to parse?
                 if (numBytesLeft_ > 0) {
                     continue;
                 }
-                // we are done, read another packet.
+                // we are done, read another request.
                 return doReadPacketHeader();
             } break;
             case ResultType::Bad: {

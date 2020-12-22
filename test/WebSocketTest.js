@@ -1,30 +1,39 @@
-import WebSocket from 'ws';
+var client = new WebSocket();
 
-const socket = new WebSocket('ws://localhost:8080');
-const Message = "Hello, World!";
-
-socket.onopen = (event) => {
-    console.log("Connection established ");
-    console.log("Sending the message: \'" + Message + "\'");
-    socket.send(Message);
-}
-
-socket.on('ping', function heartbeat() {
-    console.log("Ping received!");
+client.on('connectFailed', function(error) {
+    console.log('Connect Error: ' + error.toString());
 });
 
-socket.on('pong', function heartbeat() {
-    console.log("Pong received!");
+client.on('connect', function(connection) {
+    console.log('WebSocket Client Connected');
+    connection.on('error', function(error) {
+        console.log("Connection Error: " + error.toString());
+    });
+    connection.on('close', function() {
+        console.log('echo-protocol Connection Closed');
+    });
+    connection.on('message', function(message) {
+        if (message.type === 'utf8') {
+            console.log("Received: '" + message.utf8Data + "'");
+        }
+    });
+    
+    function sendNumber() {
+        if (connection.connected) {
+            const object = {
+                id: 1
+            };
+            console.log(object);
+            
+            const encoded = encode(object);
+            const buffer = Buffer.from(encoded.buffer, encoded.byteOffset, encoded.byteLength);
+
+            connection.sendBytes(buffer);
+            setTimeout(sendNumber, 1000);
+            console.log("Data sent!");
+        }
+    }
+    sendNumber();
 });
 
-socket.onclose = (event) => {
-    console.log('Connection closed by remote host.');
-}
-
-socket.onmessage = (event) => {
-    console.log('Message from Server:', event.data);
-}
-
-socket.onerror = function (event) {
-    console.error("WebSocket error observed:", event);
-}
+client.connect('ws://localhost:8080/');
