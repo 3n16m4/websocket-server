@@ -132,6 +132,13 @@ class SharedState
         }
     }
 
+    // only applies for TCP Sessions
+    template <typename SessionType>
+    std::shared_ptr<SessionType> findStation(StationId _key)
+    {
+        return nullptr;
+    }
+
     /// \brief Broadcast a message to all connected websocket sessions from the
     /// list.
     /// \tparam SessionType The SessionType can either be PlainWebSocketSession

@@ -17,6 +17,8 @@
 #include <boost/asio/dispatch.hpp>
 #include <boost/asio/post.hpp>
 
+#include <magic_enum.hpp>
+
 #include <memory>
 #include <string>
 #include <string_view>
@@ -133,11 +135,10 @@ class WebSocketSession
         LOG_DEBUG("Got {} bytes\n", _bytesTransferred);
 
         while (buffer_.size()) {
-            auto const view{buffer_.cdata()};
-            auto const [status, bytesParsed] = handler_.handle(view);
+            auto const [status, bytesParsed] = handler_.handle(buffer_.cdata());
 
-            LOG_DEBUG("Status: {} Bytes parsed: {}\n", static_cast<int>(status),
-                      bytesParsed);
+            LOG_DEBUG("Status: {}, Bytes parsed: {}\n",
+                      magic_enum::enum_name<ResultType>(status), bytesParsed);
 
             // Pop off the current packet we read.
             buffer_.consume(bytesParsed);
@@ -214,6 +215,18 @@ class WebSocketSession
         LOG_DEBUG("WebSocketSession::~WebSocketSession()\n");
         state_->leave(&derived());
     }
+
+    /// \brief Returns the underlying SharedState reference.
+    SharedState const& sharedState() const noexcept
+    {
+        return *state_.get();
+    };
+
+    /// \brief Returns the underlying SharedState reference.
+    SharedState& sharedState() noexcept
+    {
+        return *state_.get();
+    };
 
     /// \brief Start the asynchronous operation.
     template <class Body, class Allocator>
