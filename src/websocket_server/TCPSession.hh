@@ -53,24 +53,22 @@ class TCPSession
     {
         if (_error) {
             handler_.stop();
+            return;
         }
 
         if (_error == asio::error::eof ||
             _error == asio::error::connection_reset) {
             LOG_ERROR("Read error: Connection was closed by remote endpoint\n");
-			// handler_.stop();
             return;
         }
         if (_error == asio::error::operation_aborted ||
             _error == asio::error::connection_aborted) {
             LOG_ERROR("Read error: Connection was closed by remote endpoint "
                       "due to a timeout.\n");
-            // handler_.stop();
             return;
         }
         if (_error) {
             LOG_ERROR("Read error: {}\n", _error.message());
-            // handler_.stop();
             return;
         }
 
@@ -87,12 +85,12 @@ class TCPSession
     /// \brief Parses the received packet from the input buffer.
     void parsePacketHeader()
     {
-        // Extract the PacketId from the buffer.
-        auto const id = static_cast<in::PacketType>(*input_.begin());
-
         // As long as we have packets in the buffer pending, we should parse
         // them all until there are no more bytes to be read from the buffer.
         while (numBytesLeft_) {
+            // Extract the PacketId from the buffer.
+            auto const id = static_cast<in::PacketType>(*input_.begin());
+
             // Get a view of the data we have received.
             auto const view{asio::const_buffer(input_.data(), numBytesLeft_)};
 
@@ -117,7 +115,8 @@ class TCPSession
                 return doReadPacketHeader();
             } break;
             case ResultType::Bad: {
-                return derived().disconnect();
+                // return derived().disconnect();
+                return;
             } break;
             case ResultType::Indeterminate: {
                 auto const packetName = in::packetNameById(id);
@@ -150,6 +149,7 @@ class TCPSession
     /// \brief Leaves the TCPSession.
     ~TCPSession()
     {
+        // derived().disconnect();
         state_->leave<Derived>(stationId_);
         LOG_DEBUG("TCPSession disconnected.\n");
     }

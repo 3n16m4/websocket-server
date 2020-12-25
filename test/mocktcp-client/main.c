@@ -25,6 +25,8 @@ typedef struct ping_packet
 typedef struct weather_status_request_packet
 {
     uint8_t header;
+    uint8_t uuid[16];
+    uint8_t flag;
 } weather_status_request_packet_t;
 
 // out
@@ -35,8 +37,10 @@ typedef struct pong_packet
 typedef struct weather_status_response_packet
 {
     uint8_t header;
+    uint8_t uuid[16];
     float temperature; // -40 - 80°C
     float humidity;    // 0 - 100%
+    uint8_t flag;
 } weather_status_response_packet_t;
 #pragma pack(pop)
 
@@ -63,6 +67,8 @@ int main(int argc, char* argv[])
         fprintf(stderr, "insufficient arguments.\n");
         return 1;
     }
+
+    srand((unsigned int)time(NULL));
 
     uint8_t const station_id = (uint8_t)strtol(argv[1], NULL, 10);
 
@@ -147,13 +153,29 @@ int main(int argc, char* argv[])
         } break;
             // weather_status request
         case 0x04: {
-            printf("weather_status request received\n");
+            weather_status_request_packet_t p;
+            memcpy(&p, buffer, sizeof(p));
+
+            printf("weather_status request received: %d\n", p.flag);
+            printf("weather_status UUID:\n");
+            for (uint8_t i = 0; i < 16; ++i) {
+                printf("%x ", p.uuid[i]);
+            }
+            printf("\n");
 
             // simulate a sensor read
-            sleep(1);
-            // send data
+            //sleep(1);
+            usleep(100000);
+            // send random data
+            float const temp = ((float)rand() / (float)(RAND_MAX)) * 70.f;
+            float const hum = ((float)rand() / (float)(RAND_MAX)) * 100.f;
             weather_status_response_packet_t response = {.header = 0x02,
-                                                       .humidity = 67.3f};
+                                                         .temperature = temp,
+                                                         .humidity = hum,
+                                                         .flag = p.flag};
+
+            // copy original uuid to response
+            memcpy(response.uuid, p.uuid, 16);
 
             bytes = send(sockfd, (const void*)&response, sizeof(response), 0);
             printf("sent weather status packet %zu bytes.\n", bytes);

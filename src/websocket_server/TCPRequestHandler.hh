@@ -6,6 +6,7 @@
 #include "websocket_server/Logger.hh"
 #include "websocket_server/Packets/In.hh"
 #include "websocket_server/Packets/Out.hh"
+#include "websocket_server/SharedState.hh"
 #include "websocket_server/utils/packet_view.hh"
 
 #include <boost/asio/steady_timer.hpp>
@@ -60,6 +61,8 @@ class TCPRequestHandler
         // point, the handler can fully trust that _view.size() is big enough to
         // have a view of its packet.)
 
+        LOG_DEBUG("PacketId: {0:#04x}\n", _id);
+
         switch (_id) {
         case PacketType::Handshake:
             return handleHandshakePacket(_view);
@@ -81,8 +84,8 @@ class TCPRequestHandler
         pingTimer_.cancel();
         pongTimer_.cancel();
 
-        auto& session = session_.derived();
-        session.disconnect();
+        // auto& session = session_.derived();
+        // session.disconnect();
     }
 
   private:
@@ -207,6 +210,37 @@ class TCPRequestHandler
         packet_view<in::WeatherStatusPacket> const packet{_view.data()};
 
         LOG_INFO("handleWeatherStatusPacket called with view: {}\n", packet);
+
+        LOG_INFO("Temperature: {} Humidity: {}\n", packet->temperature,
+                 packet->humidity);
+
+        // convert uuid from packet to boost::uuids::uuid
+        boost::uuids::uuid uuid;
+        std::memcpy(&uuid, packet->uuid.data(), uuid.size());
+
+        auto& state = session_.sharedState();
+
+        WeatherStatusNotification notification;
+        notification.id = session_.stationId();
+        /// TODO: save time from response!!!
+        notification.temperature = packet->temperature;
+        notification.humidity = packet->humidity;
+
+        /// notify webscket session about packet!
+        if (packet->flag == WebSocketSessionFlag::Plain) {
+            // obtain PlainWebSocketSession shared_ptr and call callback
+            auto callback =
+                state.template findWebSocketSession<PlainWebSocketSession>(
+                    uuid);
+            if (callback) {
+                callback(notification);
+            } else {
+                LOG_ERROR("WebSocketSession not found by UUID!!!\n");
+            }
+        } else if (packet->flag == WebSocketSessionFlag::SSL) {
+            // obtain SSLWebSocketSession shared_ptr and call callback
+            // TODO: same thing!
+        }
 
         return std::make_pair(ResultType::Good, packet.size());
     }

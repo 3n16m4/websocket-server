@@ -4,6 +4,9 @@
 #include "websocket_server/RequestHandler.hh"
 #include "websocket_server/Logger.hh"
 #include "websocket_server/Packets/In/HandshakePacket.hh"
+#include "websocket_server/Packets/Out/WeatherStatusPacket.hh"
+#include "websocket_server/SharedState.hh"
+#include "websocket_server/PlainTCPSession.hh"
 
 #include <nlohmann/json.hpp>
 #include <magic_enum.hpp>
@@ -12,7 +15,7 @@
 
 using JSON = nlohmann::json;
 
-/// TODO: Should be indicate the session that it send too much data and just
+/// TODO: Should we indicate the session that it send too much data and just
 /// discard the packet or just disconnect the session ?
 
 namespace amadeus {
@@ -93,12 +96,46 @@ class WebSocketRequestHandler
 
     HandlerReturnType handleWeatherStatusRequest(std::size_t _size, JSON _json)
     {
+        /// TODO: Register callback each time we receive a response for the
+        /// weather status from the µc.
         LOG_DEBUG("WeatherStatusRequest JSON = {}\n", _json);
 
         // go through request
+        if (!_json.contains("stationIds")) {
+            return std::make_pair(ResultType::Bad, _size);
+        }
+
+        auto const stations = _json["stationIds"];
+        session_.numRequestedStations(stations.size());
+        LOG_DEBUG("Num Requested stations: {}\n", stations.size());
+
+        auto& state = session_.sharedState();
         // for each stationId in the request, try to obtain a shared_ptr for the
         // tcp session (can be both plain or ssl)
-        // send weather status request
+        for (auto const id : stations) {
+            auto sp = state.findStation(id);
+            if (sp) {
+                LOG_DEBUG("shared_ptr found for session!\n");
+                // prepare payload
+                out::WeatherStatusPacket packet{};
+                std::memcpy(packet.uuid.data(), &session_.uuid(),
+                            packet.uuid.size());
+
+                if constexpr (std::is_same_v<Session, PlainWebSocketSession>) {
+                    LOG_DEBUG("setting flag to Plain\n");
+                    packet.flag = WebSocketSessionFlag::Plain;
+                } else if constexpr (std::is_same_v<Session,
+                                                    SSLWebSocketSession>) {
+                    packet.flag = WebSocketSessionFlag::SSL;
+                }
+
+                // send weather request to µc
+                sp->writePacket(packet, [this](auto&& bytes_transferred) {
+                    LOG_INFO("WeatherStatusRequest sent with {} bytes.\n",
+                             bytes_transferred);
+                });
+            }
+        }
 
         return std::make_pair(ResultType::Good, _size);
     }
