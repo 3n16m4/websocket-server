@@ -1,3 +1,0 @@
-[submodule "www/weather-station-frontend"]
-	path = www/weather-station-frontend
-	url = https://github.com/lukaslanger99/weather-station-frontend.git
