@@ -19,6 +19,7 @@ A fully asynchronous, multi-threaded, lightweight WebSocket server written in C+
 - boost-beast
 - nlohmann_json
 - fmtlib
+- magic_enum
 
 > **ProTip:** Use Arch Linux to grab the latest compilers.
 

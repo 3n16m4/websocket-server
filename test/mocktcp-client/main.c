@@ -8,6 +8,7 @@
 #include <netdb.h>
 #include <string.h>
 #include <fcntl.h>
+#include <stdlib.h>
 
 #pragma pack(push, 1)
 // in
@@ -21,11 +22,26 @@ typedef struct ping_packet
 {
     uint8_t header;
 } ping_packet_t;
+typedef struct weather_status_request_packet
+{
+    uint8_t header;
+    uint8_t uuid[16];
+    uint8_t flag;
+} weather_status_request_packet_t;
+
 // out
 typedef struct pong_packet
 {
     uint8_t header;
 } pong_packet_t;
+typedef struct weather_status_response_packet
+{
+    uint8_t header;
+    uint8_t uuid[16];
+    float temperature; // -40 - 80°C
+    float humidity;    // 0 - 100%
+    uint8_t flag;
+} weather_status_response_packet_t;
 #pragma pack(pop)
 
 int input_timeout(int filedes, unsigned int seconds)
@@ -45,14 +61,23 @@ int input_timeout(int filedes, unsigned int seconds)
     return select(FD_SETSIZE, &set, NULL, NULL, &timeout);
 }
 
-int main()
+int main(int argc, char* argv[])
 {
+    if (argc != 2) {
+        fprintf(stderr, "insufficient arguments.\n");
+        return 1;
+    }
+
+    srand((unsigned int)time(NULL));
+
+    uint8_t const station_id = (uint8_t)strtol(argv[1], NULL, 10);
+
     char buffer[64];
     int sockfd;
     struct sockaddr_in server;
     struct hostent* hp = gethostbyname("127.0.0.1");
     if (hp == NULL) {
-        return -1;
+        return 1;
     }
 
     server.sin_family = AF_INET;
@@ -64,7 +89,7 @@ int main()
 
     if (connect(sockfd, (const struct sockaddr*)&server,
                 sizeof(struct sockaddr_in)) < 0) {
-        return -1;
+        return 1;
     }
 
     // mark the socket non-blocking
@@ -103,7 +128,7 @@ int main()
             printf("handshake received\n");
             handshake_packet_t packet = {
                 .header = 0x00,
-                .station_id = 0x00,
+                .station_id = station_id,
                 .uuid = {0xa8, 0x51, 0x17, 0x3e, 0x82, 0x64, 0x4b, 0x35, 0x80,
                          0xe2, 0x80, 0x01, 0x71, 0x12, 0xcc, 0x9d}};
 
@@ -122,9 +147,38 @@ int main()
         case 0x03: {
             printf("ping received\n");
 
-			pong_packet_t packet = {.header = 0x01};
+            pong_packet_t packet = {.header = 0x01};
             bytes = send(sockfd, (const void*)&packet, sizeof(packet), 0);
             printf("sent pong packet %zu bytes.\n", bytes);
+        } break;
+            // weather_status request
+        case 0x04: {
+            weather_status_request_packet_t p;
+            memcpy(&p, buffer, sizeof(p));
+
+            printf("weather_status request received: %d\n", p.flag);
+            printf("weather_status UUID:\n");
+            for (uint8_t i = 0; i < 16; ++i) {
+                printf("%x ", p.uuid[i]);
+            }
+            printf("\n");
+
+            // simulate a sensor read
+            //sleep(1);
+            usleep(100000);
+            // send random data
+            float const temp = ((float)rand() / (float)(RAND_MAX)) * 70.f;
+            float const hum = ((float)rand() / (float)(RAND_MAX)) * 100.f;
+            weather_status_response_packet_t response = {.header = 0x02,
+                                                         .temperature = temp,
+                                                         .humidity = hum,
+                                                         .flag = p.flag};
+
+            // copy original uuid to response
+            memcpy(response.uuid, p.uuid, 16);
+
+            bytes = send(sockfd, (const void*)&response, sizeof(response), 0);
+            printf("sent weather status packet %zu bytes.\n", bytes);
         } break;
         }
     }

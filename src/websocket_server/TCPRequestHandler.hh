@@ -1,66 +1,45 @@
-#ifndef WEBSOCKET_SERVER_REQUEST_HANDLER_HH
-#define WEBSOCKET_SERVER_REQUEST_HANDLER_HH
+#ifndef WEBSOCKET_SERVER_TCP_PACKET_HANDLER_HH
+#define WEBSOCKET_SERVER_TCP_PACKET_HANDLER_HH
 
-#include "websocket_server/asiofwd.hh"
+#include "websocket_server/RequestHandler.hh"
 #include "websocket_server/Common.hh"
 #include "websocket_server/Logger.hh"
 #include "websocket_server/Packets/In.hh"
 #include "websocket_server/Packets/Out.hh"
+#include "websocket_server/SharedState.hh"
 #include "websocket_server/utils/packet_view.hh"
 
-#include <boost/asio/buffer.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <boost/uuid/string_generator.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
-#include <cstdint>
-#include <type_traits>
-#include <utility>
-
-/// \brief The PacketHandler for incoming µc-TCP requests.
-/// A PacketHandler can vary in its design and underlying data structure
+/// \brief The TCPRequestHandler for incoming µc-TCP requests.
+/// A TCPRequestHandler can vary in its design and underlying data structure
 /// choice which heavily depends on the network partner (server).
-/// Each PacketHandler implementation however, must override the handle
+/// Each TCPRequestHandler implementation however, must override the handle
 /// method and call its specific handlers inside it.
 namespace amadeus {
 namespace in {
 enum class PacketType : std::uint8_t;
 } // namespace in
+
 template <class Session>
-class PacketHandler
+class TCPRequestHandler
 {
   public:
-    /// \brief Result of parser.
-    enum class ResultType
-    {
-        /// \brief EOF. We have completely parsed the packet.
-        Good,
-        /// \brief Something bad occurred while parsing the packet.
-        Bad,
-        /// \brief Packet has not been fully parsed yet. We need to read more
-        /// data into the input buffer before we can try parsing the packet
-        /// again.
-        /// \remarks: This only applies to the Packet Header itself.
-        Indeterminate
-    };
-
-    /// The return type of a handler.
-    using HandlerReturnType = std::pair<ResultType, std::size_t>;
     /// The underlying PacketId Type.
     using PacketIdType = std::underlying_type<in::PacketType>::type;
-    /// The immutable data from the network buffer.
-    using BufferView = asio::const_buffer;
 
     /// \brief Constructor.
-    PacketHandler(asio::io_context& _ioc, Session& _session)
+    TCPRequestHandler(asio::io_context& _ioc, Session& _session)
         : session_(_session)
         , pingTimer_(_ioc, PingTimeout)
         , pongTimer_(_ioc, PongTimeout)
     {
     }
 
-    // \brief Parse some data. The enum return value is 'Good' when a
+    /// \brief Parse some data. The enum return value is 'Good' when a
     /// complete request has been parsed, 'Bad' if the data is invalid,
     /// 'Indeterminate' when more data is required. The std::size_t return
     /// value indicates how much of the input has been consumed. See \ref
@@ -81,6 +60,8 @@ class PacketHandler
         // 'Good' if the handler was able to parse the data correctly. (At this
         // point, the handler can fully trust that _view.size() is big enough to
         // have a view of its packet.)
+
+        LOG_DEBUG("PacketId: {0:#04x}\n", _id);
 
         switch (_id) {
         case PacketType::Handshake:
@@ -103,8 +84,8 @@ class PacketHandler
         pingTimer_.cancel();
         pongTimer_.cancel();
 
-        auto& session = session_.derived();
-        session.disconnect();
+        // auto& session = session_.derived();
+        // session.disconnect();
     }
 
   private:
@@ -230,6 +211,37 @@ class PacketHandler
 
         LOG_INFO("handleWeatherStatusPacket called with view: {}\n", packet);
 
+        LOG_INFO("Temperature: {} Humidity: {}\n", packet->temperature,
+                 packet->humidity);
+
+        // convert uuid from packet to boost::uuids::uuid
+        boost::uuids::uuid uuid;
+        std::memcpy(&uuid, packet->uuid.data(), uuid.size());
+
+        auto& state = session_.sharedState();
+
+        WeatherStatusNotification notification;
+        notification.id = session_.stationId();
+        /// TODO: save time from response!!!
+        notification.temperature = packet->temperature;
+        notification.humidity = packet->humidity;
+
+        /// notify webscket session about packet!
+        if (packet->flag == WebSocketSessionFlag::Plain) {
+            // obtain PlainWebSocketSession shared_ptr and call callback
+            auto callback =
+                state.template findWebSocketSession<PlainWebSocketSession>(
+                    uuid);
+            if (callback) {
+                callback(notification);
+            } else {
+                LOG_ERROR("WebSocketSession not found by UUID!!!\n");
+            }
+        } else if (packet->flag == WebSocketSessionFlag::SSL) {
+            // obtain SSLWebSocketSession shared_ptr and call callback
+            // TODO: same thing!
+        }
+
         return std::make_pair(ResultType::Good, packet.size());
     }
 
@@ -269,9 +281,9 @@ class PacketHandler
         out::PingPacket const packet{};
         session_.writePacket(packet, [this](auto&& bytes_transferred) {
             LOG_INFO("PingPacket sent with {} bytes.\n", bytes_transferred);
+            startPongTimer();
         });
 
-        startPongTimer();
         restartPingTimer();
     }
 
@@ -290,4 +302,4 @@ class PacketHandler
 };
 } // namespace amadeus
 
-#endif // !WEBSOCKET_SERVER_REQUEST_HANDLER_HH
+#endif // !WEBSOCKET_SERVER_TCP_PACKET_HANDLER_HH

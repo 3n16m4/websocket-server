@@ -44,6 +44,16 @@ class packet_view final
     using const_iterator = value_type const*;
 
   public:
+    constexpr packet_view(void const* _data, value_size_type _size) noexcept
+        : data_(static_cast<value_type const*>(_data))
+        , size_(_size)
+    {
+        static_assert(std::is_class_v<PacketType>,
+                      "Packet needs to be a struct or class.");
+        static_assert(std::is_trivially_copyable_v<PacketType>,
+                      "Packet needs to be trivially copyable.");
+    }
+
     constexpr explicit packet_view(void const* _data) noexcept
         : data_(static_cast<value_type const*>(_data))
         , size_(sizeof(PacketType))
@@ -94,22 +104,26 @@ class packet_view final
         return size_;
     }
 
-    [[nodiscard]] std::string to_string() const
-    {
-        auto fmt = fmt::format("[{0:#04x}, {1}] --> {{{2:#04x}}}", *data_,
-                               size_, fmt::join(*this, ", "));
-        return fmt;
-    }
-
-    friend std::ostream& operator<<(std::ostream& _os, packet_view const& _self)
-    {
-        return _os << _self.to_string();
-    }
-
   private:
     value_type const* data_{};
     value_size_type size_{};
 };
 } // namespace amadeus
 
+template <typename PacketType, typename Type>
+struct fmt::formatter<amadeus::packet_view<PacketType, Type>>
+{
+    template <typename ParseContext>
+    constexpr auto parse(ParseContext& ctx)
+    {
+        return ctx.begin();
+    }
+
+    template <typename FormatContext>
+    auto format(amadeus::packet_view<PacketType, Type> view, FormatContext& ctx)
+    {
+        return fmt::format_to(ctx.out(), "[{0:#04x}, {1}] --> {{{2:#04x}}}",
+                              *view.data(), view.size(), fmt::join(view, ", "));
+    }
+};
 #endif // !WEBSOCKET_SERVER_PACKET_VIEW_HH

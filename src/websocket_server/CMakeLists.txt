@@ -6,6 +6,12 @@ CPMAddPackage(
 )
 
 CPMAddPackage(
+    NAME magic_enum
+    GITHUB_REPOSITORY Neargye/magic_enum
+    GIT_TAG v0.7.1
+)
+
+CPMAddPackage(
     NAME nlohmann_json
     VERSION 3.9.1
     URL https://github.com/nlohmann/json/releases/download/v3.9.1/include.zip
@@ -29,8 +35,8 @@ find_package(OpenSSL REQUIRED)
 
 set(SRC_FILES
     main.cc
-    PacketHandler.hh
-    PacketHandler.cc
+    TCPRequestHandler.hh
+    TCPRequestHandler.cc
     CommandLineInterface.hh
     CommandLineInterface.cc
     ServerCertificate.hh
@@ -70,6 +76,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     OpenSSL::Crypto
     fmt::fmt-header-only
     nlohmann_json
+    magic_enum
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src)

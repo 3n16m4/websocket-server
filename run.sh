@@ -1,9 +1,11 @@
 #!/bin/bash
 
 docker() {
-    if [[ -t 1 ]]; then
+	if hash podman 2>/dev/null; then
+		echo "podman"
         command podman "$@"
     else
+		echo "docker"
         command docker "$@"
     fi
 }

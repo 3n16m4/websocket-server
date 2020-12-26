@@ -17,7 +17,7 @@ auto constexpr IdleTimeout{10s};
 /// The timeout for whenever a ping packet is sent.
 auto constexpr PingTimeout{30s};
 /// The timeout for whenever a pong packet is expected from the peer.
-auto constexpr PongTimeout{5s};
+auto constexpr PongTimeout{10s};
 
 /// Identifies the API version of the server.
 #define SERVER_VERSION 10
