@@ -238,11 +238,27 @@ class SharedState
 
     // TODO: Only plain_tcp_sessions_ for now. Replace plain_tcp_sessions_ with
     // ssl_tcp_sessions_ upon release.
-    std::shared_ptr<PlainTCPSession> findStation(StationId _key)
+    /*std::shared_ptr<PlainTCPSession> findStation(StationId _key)
     {
         std::scoped_lock<std::mutex> lk(mtx_);
         if (auto const it = plain_tcp_sessions_.find(_key);
             it != std::end(plain_tcp_sessions_)) {
+            auto wp = weak_from_this(it->second);
+            if (auto sp = wp.lock()) {
+                return sp;
+            }
+            // sp has expired
+            return nullptr;
+        }
+        // not found
+        return nullptr;
+    }*/
+
+    // TODO: refactor me, im ugly af
+    std::shared_ptr<SSLTCPSession> findStation(StationId _key)
+    {
+        std::scoped_lock<std::mutex> lk(mtx_);
+        if (auto const it = ssl_tcp_sessions_.find(_key); it != std::end(ssl_tcp_sessions_)) {
             auto wp = weak_from_this(it->second);
             if (auto sp = wp.lock()) {
                 return sp;

@@ -7,6 +7,7 @@
 #include "websocket_server/Packets/Out/WeatherStatusPacket.hh"
 #include "websocket_server/SharedState.hh"
 #include "websocket_server/PlainTCPSession.hh"
+#include "websocket_server/SSLTCPSession.hh"
 
 #include <nlohmann/json.hpp>
 #include <magic_enum.hpp>
