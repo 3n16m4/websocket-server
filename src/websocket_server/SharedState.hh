@@ -37,12 +37,15 @@ struct WeatherStatusNotification
 template <typename SessionType>
 struct WebSocketSessionCtx
 {
+    /// The callback whenever a new weather response is received from the TCP
+    /// Session.
+    using NotificationCallback = std::function<void(WeatherStatusNotification)>;
     // static_assert(std::is_base_of_v<SessionType, WebSocketSession>());
     /// Can either be PlainWebSocketSession or SSLWebSocketSession.
     SessionType* session;
     /// Called each time a new weather response was received from the TCP
     /// Session.
-    std::function<void(WeatherStatusNotification)> callback;
+    NotificationCallback callback;
 };
 
 class PlainWebSocketSession;
@@ -51,6 +54,9 @@ class PlainTCPSession;
 class SSLTCPSession;
 class SharedState
 {
+    using PlainWebSocketSessionCtx = WebSocketSessionCtx<PlainWebSocketSession>;
+    using SSLWebSocketSessionCtx = WebSocketSessionCtx<SSLWebSocketSession>;
+
   private:
     /// The document root.
     std::string const docRoot_;
@@ -116,8 +122,10 @@ class SharedState
         }
     }
 
+    /// \brief Returns the callback for the PlainWebSocketSession by a given UUID.
+    /// \param _uuid The specific UUID bound to the PlainWebSocketSession.
     /// \remarks Not Thread-Safe. Must be called with a held lock.
-    std::function<void(WeatherStatusNotification)>
+    PlainWebSocketSessionCtx::NotificationCallback
     findPlainWebSocketSession(boost::uuids::uuid const& _uuid)
     {
         if (auto const it = plain_sessions_.find(_uuid);
@@ -133,7 +141,24 @@ class SharedState
         return nullptr;
     }
 
-    /// TODO: same thing for SSLWebSocketSession
+    /// \brief Returns the callback for the SSLWebSocketSession by a given UUID.
+    /// \param _uuid The specific UUID bound to the SSLWebSocketSession.
+    /// \remarks Not Thread-Safe. Must be called with a held lock.
+    SSLWebSocketSessionCtx::NotificationCallback
+    findSSLWebSocketSession(boost::uuids::uuid const& _uuid)
+    {
+        if (auto const it = ssl_sessions_.find(_uuid);
+            it != std::end(ssl_sessions_)) {
+            auto wp = weak_from_this(it->second.session);
+            if (auto sp = wp.lock()) {
+                return it->second.callback;
+            }
+            // sp has expired
+            return nullptr;
+        }
+        // not found
+        return nullptr;
+    }
 
   public:
     /// \brief Constructor.
@@ -206,7 +231,7 @@ class SharedState
         if constexpr (std::is_same_v<SessionType, PlainWebSocketSession>) {
             return findPlainWebSocketSession(_uuid);
         } else if constexpr (std::is_same_v<SessionType, SSLWebSocketSession>) {
-            /// TODO: same thing
+            return findSSLWebSocketSession(_uuid);
         }
         return nullptr;
     }

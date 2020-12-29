@@ -187,38 +187,13 @@ class WebSocketSession
                     });
             } break;
             case ResultType::Indeterminate: {
-                // TODO:
+                // TODO: Read more data into buffer.
+            } break;
+            case ResultType::PayloadTooBig: {
+                // TODO: Send a bad request.
             } break;
             }
         }
-    }
-
-    /// \brief CompletionToken for the asynchronous write operation.
-    void onWrite(beast::error_code const& _error, std::size_t _bytesTransferred)
-    {
-        if (_error) {
-            LOG_ERROR("Write error: {}\n", _error.message());
-            return;
-        }
-
-        /// TODO: Erase the message from the front of the queue
-        /// send the next message from the queue if there's any.
-
-        // Broadcast the message to all connections.
-        // state_->send<Derived>(beast::buffers_to_string(buffer_.data()));
-
-        // Clear the buffer
-        // buffer_.consume(buffer_.size());
-
-        // Read another message
-        // doRead();
-    }
-
-    /// \brief CompletionToken for the send operation.
-    void onSend(std::shared_ptr<std::string const> const& _message)
-    {
-        /// TODO: queue work..
-        /// Send the message from the front of the queue.
     }
 
   public:
@@ -294,19 +269,6 @@ class WebSocketSession
             [self = derived().shared_from_this(), _req = std::move(_req)] {
                 self->onRun(std::move(_req));
             });
-    }
-
-    /// \brief Sends a given message to all connected websocket sessions.
-    /// Called from the SharedState for each WebSocketSession.
-    void send(std::shared_ptr<std::string const> const& _message)
-    {
-        // Post our work to the strand, this ensures
-        // that the members of `this` will not be
-        // accessed concurrently.
-        asio::post(derived().stream().get_executor(),
-                   [self = derived().shared_from_this(), _message] {
-                       self->onSend(_message);
-                   });
     }
 
     /// \brief Called each time a new Weather Status Response is received from a

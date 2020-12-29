@@ -52,7 +52,7 @@ class WebSocketRequestHandler
 
         if (_view.size() > MaxPayloadSize) {
             LOG_ERROR("Payload is too big to handle! Discarding packet...\n");
-            return std::make_pair(ResultType::Bad, 0);
+            return std::make_pair(ResultType::PayloadTooBig, 0);
         }
 
         auto const buffer = reinterpret_cast<std::uint8_t const*>(_view.data());
@@ -96,8 +96,6 @@ class WebSocketRequestHandler
 
     HandlerReturnType handleWeatherStatusRequest(std::size_t _size, JSON _json)
     {
-        /// TODO: Register callback each time we receive a response for the
-        /// weather status from the µc.
         LOG_DEBUG("WeatherStatusRequest JSON = {}\n", _json);
 
         // go through request
@@ -126,6 +124,7 @@ class WebSocketRequestHandler
                     packet.flag = WebSocketSessionFlag::Plain;
                 } else if constexpr (std::is_same_v<Session,
                                                     SSLWebSocketSession>) {
+                    LOG_DEBUG("setting flag to SSL\n");
                     packet.flag = WebSocketSessionFlag::SSL;
                 }
 

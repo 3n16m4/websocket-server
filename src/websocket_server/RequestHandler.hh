@@ -21,7 +21,11 @@ enum class ResultType
     /// data into the input buffer before we can try parsing the packet
     /// again.
     /// \remarks: This only applies to the Packet Header itself.
-    Indeterminate
+    Indeterminate,
+    /// \brief The requested payload is too big for the server to handle. The
+    /// caller should simply send back a bad request instead of gracefully
+    /// closing the remote peer.
+    PayloadTooBig,
 };
 
 /// The return type of a handler.
