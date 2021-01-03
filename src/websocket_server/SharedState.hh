@@ -6,14 +6,15 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/functional/hash.hpp>
 
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <type_traits>
-#include <unordered_set>
 #include <unordered_map>
+#include <unordered_set>
+#include <variant>
 #include <vector>
-#include <functional>
 
 // TODO: Delete PlainTCPSessions because they are not needed and should not be
 // allowed in the webserver.
@@ -32,6 +33,8 @@ struct WeatherStatusNotification
     StationId id;
     float temperature;
     float humidity;
+    // unix time since epoch
+    std::uint32_t time{};
 };
 
 template <typename SessionType>
@@ -122,8 +125,8 @@ class SharedState
         }
     }
 
-    /// \brief Returns the callback for the PlainWebSocketSession by a given UUID.
-    /// \param _uuid The specific UUID bound to the PlainWebSocketSession.
+    /// \brief Returns the callback for the PlainWebSocketSession by a given
+    /// UUID. \param _uuid The specific UUID bound to the PlainWebSocketSession.
     /// \remarks Not Thread-Safe. Must be called with a held lock.
     PlainWebSocketSessionCtx::NotificationCallback
     findPlainWebSocketSession(boost::uuids::uuid const& _uuid)
@@ -160,7 +163,40 @@ class SharedState
         return nullptr;
     }
 
+    std::shared_ptr<PlainTCPSession> findPlainStation(StationId _key)
+    {
+        if (auto const it = plain_tcp_sessions_.find(_key);
+            it != std::end(plain_tcp_sessions_)) {
+            auto wp = weak_from_this(it->second);
+            if (auto sp = wp.lock()) {
+                return sp;
+            }
+            // sp has expired
+            return nullptr;
+        }
+        // not found
+        return nullptr;
+    }
+
+    std::shared_ptr<SSLTCPSession> findSSLStation(StationId _key)
+    {
+        if (auto const it = ssl_tcp_sessions_.find(_key);
+            it != std::end(ssl_tcp_sessions_)) {
+            auto wp = weak_from_this(it->second);
+            if (auto sp = wp.lock()) {
+                return sp;
+            }
+            // sp has expired
+            return nullptr;
+        }
+        // not found
+        return nullptr;
+    }
+
   public:
+    using VariantType = std::variant<std::shared_ptr<PlainTCPSession>,
+                                     std::shared_ptr<SSLTCPSession>>;
+
     /// \brief Constructor.
     /// \param _docRoot The document resources directory.
     SharedState(std::string _docRoot, JSON const& _config);
@@ -228,6 +264,7 @@ class SharedState
     findWebSocketSession(boost::uuids::uuid const& _uuid)
     {
         std::scoped_lock<std::mutex> lk(mtx_);
+
         if constexpr (std::is_same_v<SessionType, PlainWebSocketSession>) {
             return findPlainWebSocketSession(_uuid);
         } else if constexpr (std::is_same_v<SessionType, SSLWebSocketSession>) {
@@ -236,37 +273,16 @@ class SharedState
         return nullptr;
     }
 
-    // TODO: Only plain_tcp_sessions_ for now. Replace plain_tcp_sessions_ with
-    // ssl_tcp_sessions_ upon release.
-    /*std::shared_ptr<PlainTCPSession> findStation(StationId _key)
+    template <typename SessionType>
+    std::shared_ptr<SessionType> findStation(StationId _key)
     {
         std::scoped_lock<std::mutex> lk(mtx_);
-        if (auto const it = plain_tcp_sessions_.find(_key);
-            it != std::end(plain_tcp_sessions_)) {
-            auto wp = weak_from_this(it->second);
-            if (auto sp = wp.lock()) {
-                return sp;
-            }
-            // sp has expired
-            return nullptr;
-        }
-        // not found
-        return nullptr;
-    }*/
 
-    // TODO: refactor me, im ugly af
-    std::shared_ptr<SSLTCPSession> findStation(StationId _key)
-    {
-        std::scoped_lock<std::mutex> lk(mtx_);
-        if (auto const it = ssl_tcp_sessions_.find(_key); it != std::end(ssl_tcp_sessions_)) {
-            auto wp = weak_from_this(it->second);
-            if (auto sp = wp.lock()) {
-                return sp;
-            }
-            // sp has expired
-            return nullptr;
+        if constexpr (std::is_same_v<SessionType, PlainTCPSession>) {
+            return findPlainStation(_key);
+        } else if constexpr (std::is_same_v<SessionType, SSLTCPSession>) {
+            return findSSLStation(_key);
         }
-        // not found
         return nullptr;
     }
 

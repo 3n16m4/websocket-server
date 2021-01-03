@@ -18,6 +18,7 @@ struct WeatherStatusPacket
     std::array<std::uint8_t, 16> uuid;
     float temperature;
     float humidity;
+    std::uint32_t time;
     WebSocketSessionFlag flag;
 };
 #pragma pack(pop)

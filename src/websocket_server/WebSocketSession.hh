@@ -46,10 +46,6 @@ class WebSocketSession
     WebSocketRequestHandler<Derived> handler_;
     /// Each session is uniquely identified with a random UUID.
     boost::uuids::uuid uuid_;
-    /// Each session holds a number of requested weather stations.
-    int numRequestedStations_{0};
-    /// Queue for the Weather statuses.
-    std::deque<WeatherStatusNotification> notifications_;
 
     /// \brief Helper function to access the derived class.
     Derived& derived()
@@ -231,11 +227,6 @@ class WebSocketSession
         return uuid_;
     };
 
-    void numRequestedStations(int _val) noexcept
-    {
-        numRequestedStations_ = _val;
-    }
-
     template <typename CompletionHandler>
     void writeRequest(JSON _request, CompletionHandler&& _handler)
     {
@@ -279,51 +270,21 @@ class WebSocketSession
         LOG_DEBUG("WeatherStatusNotification: {} {}\n",
                   _notification.temperature, _notification.humidity);
 
-        if (notifications_.size() == numRequestedStations_) {
-            return;
-        }
+        // Prepare JSON response for frontend.
+        auto response = JSON::object();
+        response["id"] = ResponseType::WeatherStatus;
+        response["stationId"] = _notification.id;
+        response["temperature"] = _notification.temperature;
+        response["humidity"] = _notification.humidity;
+        /// TODO: obtain time from µc!!! not from server!
+        response["time"] = "2021-01-01 14:03:55";
 
-        // buffer the notifications
-        notifications_.emplace_front(_notification);
-
-        // compare the amount of requested weather stations inside
-        // callback so that it can send the response back to the web socket
-        // session, once we received weather statuses from all stations.
-        if (notifications_.size() == numRequestedStations_) {
-            // Prepare JSON response for frontend.
-            auto response = JSON::object();
-            response["id"] = ResponseType::WeatherStatus;
-
-            auto stations = JSON::array();
-            while (!notifications_.empty()) {
-                auto const element = std::move(notifications_.front());
-                notifications_.pop_front();
-
-                std::cout << "element: "
-                          << magic_enum::enum_name<StationId>(element.id) << " "
-                          << element.temperature << " " << element.humidity
-                          << std::endl;
-
-                auto station = JSON::object();
-                station["stationId"] = element.id;
-                station["temperature"] = element.temperature;
-                station["humidity"] = element.humidity;
-                /// TODO: obtain time from µc!!! not from server!
-                station["time"] = "2021-01-01 14:03:55";
-
-                stations.push_back(std::move(station));
-            }
-            response["stations"] = std::move(stations);
-
-            // Send response back to frontend.
-            writeRequest(std::move(response), [](auto&& bytes_transferred) {
-                LOG_DEBUG("WeatherStatus Reponse was sent to frontend with {} "
-                          "bytes.\n",
-                          bytes_transferred);
-            });
-
-            numRequestedStations_ = 0;
-        }
+        // Send response back to frontend.
+        writeRequest(std::move(response), [](auto&& bytes_transferred) {
+            LOG_DEBUG("WeatherStatus Reponse was sent to frontend with {} "
+                      "bytes.\n",
+                      bytes_transferred);
+        });
     }
 };
 } // namespace amadeus

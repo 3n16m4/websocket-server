@@ -40,6 +40,7 @@ typedef struct weather_status_response_packet
     uint8_t uuid[16];
     float temperature; // -40 - 80°C
     float humidity;    // 0 - 100%
+    uint32_t time;
     uint8_t flag;
 } weather_status_response_packet_t;
 #pragma pack(pop)
