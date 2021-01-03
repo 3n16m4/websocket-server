@@ -123,7 +123,7 @@ class TCPRequestHandler
 
         // Is the id in range?
         auto const id = static_cast<enum_type>(packet->stationId);
-        if (!(id >= 0 && id <= static_cast<enum_type>(StationId::Max))) {
+        if (!(id >= 0 && id < static_cast<enum_type>(StationId::Max))) {
             LOG_DEBUG("StationId is not in range.\n");
             return sendBadRequest(HandshakeReason::ReasonStationIdInvalid);
         }
