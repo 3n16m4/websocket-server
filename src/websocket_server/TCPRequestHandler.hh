@@ -222,9 +222,9 @@ class TCPRequestHandler
 
         WeatherStatusNotification notification;
         notification.id = session_.stationId();
-        /// TODO: save time from response!!!
         notification.temperature = packet->temperature;
         notification.humidity = packet->humidity;
+        notification.time = packet->time;
 
         /// notify webscket session about packet!
         if (packet->flag == WebSocketSessionFlag::Plain) {

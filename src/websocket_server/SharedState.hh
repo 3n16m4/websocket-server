@@ -33,8 +33,7 @@ struct WeatherStatusNotification
     StationId id;
     float temperature;
     float humidity;
-    // unix time since epoch
-    std::uint32_t time{};
+    std::uint32_t time;
 };
 
 template <typename SessionType>

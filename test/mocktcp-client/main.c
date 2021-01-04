@@ -9,6 +9,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <time.h>
 
 #pragma pack(push, 1)
 // in
@@ -164,8 +165,11 @@ int main(int argc, char* argv[])
             }
             printf("\n");
 
+            uint32_t const t = (uint32_t)time(NULL);
+            printf("TIME = %d\n", t);
+
             // simulate a sensor read
-            //sleep(1);
+            // sleep(1);
             usleep(100000);
             // send random data
             float const temp = ((float)rand() / (float)(RAND_MAX)) * 70.f;
@@ -173,6 +177,7 @@ int main(int argc, char* argv[])
             weather_status_response_packet_t response = {.header = 0x02,
                                                          .temperature = temp,
                                                          .humidity = hum,
+                                                         .time = t,
                                                          .flag = p.flag};
 
             // copy original uuid to response

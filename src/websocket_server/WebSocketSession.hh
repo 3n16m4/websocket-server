@@ -270,14 +270,17 @@ class WebSocketSession
         LOG_DEBUG("WeatherStatusNotification: {} {}\n",
                   _notification.temperature, _notification.humidity);
 
+        std::stringstream ss;
+        auto const time = static_cast<std::time_t>(_notification.time);
+        ss << std::put_time(std::localtime(&time), "%Y-%m-%d %H:%M:%S");
+
         // Prepare JSON response for frontend.
         auto response = JSON::object();
         response["id"] = ResponseType::WeatherStatus;
         response["stationId"] = _notification.id;
         response["temperature"] = _notification.temperature;
         response["humidity"] = _notification.humidity;
-        /// TODO: obtain time from µc!!! not from server!
-        response["time"] = "2021-01-01 14:03:55";
+        response["time"] = ss.str();
 
         // Send response back to frontend.
         writeRequest(std::move(response), [](auto&& bytes_transferred) {
