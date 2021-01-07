@@ -97,6 +97,7 @@ class TCPRequestHandler
     /// Whenever this timeout expires, a ping packet will be sent to the peer.
     asio::steady_timer pingTimer_;
 
+    /// TODO: Keep track of used UUIDs to reject handshake requests with duplicate UUIDs.
     HandlerReturnType handleHandshakePacket(BufferView const _view)
     {
         packet_view<in::HandshakePacket> const packet{_view.data()};
@@ -226,8 +227,24 @@ class TCPRequestHandler
         notification.humidity = packet->humidity;
         notification.time = packet->time;
 
+        auto callback =
+            state.template findWebSocketSession<PlainWebSocketSession>(
+                uuid);
+
+        if (callback) {
+            callback(notification);
+        } else {
+            auto callback =
+                state.template findWebSocketSession<SSLWebSocketSession>(uuid);
+            if (callback) {
+                callback(notification);
+            } else {
+                LOG_ERROR("Not WebSocketSession found by such UUID!\n");
+            }
+        }
+
         /// notify webscket session about packet!
-        if (packet->flag == WebSocketSessionFlag::Plain) {
+        /*if (packet->flag == WebSocketSessionFlag::Plain) {
             /// TODO: Refactor me!
             // obtain PlainWebSocketSession shared_ptr and call callback
             auto callback =
@@ -247,7 +264,7 @@ class TCPRequestHandler
             } else {
                 LOG_ERROR("SSLWebSocketSession not found by UUID!!!\n");
             }
-        }
+        }*/
 
         return std::make_pair(ResultType::Good, packet.size());
     }

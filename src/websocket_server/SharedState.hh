@@ -194,7 +194,8 @@ class SharedState
 
   public:
     using VariantType = std::variant<std::shared_ptr<PlainTCPSession>,
-                                     std::shared_ptr<SSLTCPSession>>;
+                                     std::shared_ptr<SSLTCPSession>,
+                                     std::monostate>;
 
     /// \brief Constructor.
     /// \param _docRoot The document resources directory.
@@ -272,7 +273,7 @@ class SharedState
         return nullptr;
     }
 
-    template <typename SessionType>
+    /*template <typename SessionType>
     std::shared_ptr<SessionType> findStation(StationId _key)
     {
         std::scoped_lock<std::mutex> lk(mtx_);
@@ -283,6 +284,18 @@ class SharedState
             return findSSLStation(_key);
         }
         return nullptr;
+    }*/
+
+    VariantType findStation(StationId _id)
+    {
+        auto sp = findPlainStation(_id);
+        if (sp) {
+            return sp;
+        } else {
+            auto sp = findSSLStation(_id);
+            return sp;
+        }
+        return std::monostate();
     }
 
     std::vector<StationId> allStationIds()

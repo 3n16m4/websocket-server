@@ -128,7 +128,22 @@ class WebSocketRequestHandler
             std::memcpy(packet.uuid.data(), &session_.uuid(),
                         packet.uuid.size());
 
-            if constexpr (std::is_same_v<Session, PlainWebSocketSession>) {
+            // try to find either a plain or ssl tcp session
+            /*sp = state.template findStation<PlainTCPSession>(id);
+            if (sp) {
+                LOG_DEBUG("setting flag to Plain\n");
+                packet.flag = WebSocketSessionFlag::Plain;
+            } else {
+                sp = state.template findStation<SSLTCPSession>(id);
+                if (sp) {
+                    LOG_DEBUG("setting flag to SSL\n");
+                    packet.flag = WebSocketSessionFlag::SSL;
+                }
+            }*/
+
+            // BUG: Session typename does not specify the connected TCP Session
+            // type!!!
+            /*if constexpr (std::is_same_v<Session, PlainWebSocketSession>) {
                 LOG_DEBUG("setting flag to Plain\n");
 
                 packet.flag = WebSocketSessionFlag::Plain;
@@ -138,12 +153,15 @@ class WebSocketRequestHandler
 
                 packet.flag = WebSocketSessionFlag::SSL;
                 sp = state.template findStation<SSLTCPSession>(id);
-            }
+            }*/
 
+            sp = state.findStation(id);
             std::visit(
                 overloaded{
                     [&](std::shared_ptr<PlainTCPSession> const& ptr) {
                         if (ptr) {
+                            LOG_DEBUG("setting flag to Plain\n");
+                            packet.flag = WebSocketSessionFlag::Plain;
                             LOG_DEBUG("shared_ptr<PlainTCPSession> found for "
                                       "session with id {}!\n",
                                       id);
@@ -158,6 +176,8 @@ class WebSocketRequestHandler
                     },
                     [&](std::shared_ptr<SSLTCPSession> const& ptr) {
                         if (ptr) {
+                            LOG_DEBUG("setting flag to SSL\n");
+                            packet.flag = WebSocketSessionFlag::SSL;
                             LOG_DEBUG("shared_ptr<SSLTCPSession> found for "
                                       "session with id {}!\n",
                                       id);
@@ -170,6 +190,7 @@ class WebSocketRequestHandler
                                 });
                         }
                     },
+                    [&](std::monostate) { LOG_ERROR("No StationId found!\n"); },
                 },
                 sp);
         }
