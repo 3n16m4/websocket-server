@@ -40,7 +40,6 @@ class WebSocketSession
     /// The underlying buffer for requests.
     beast::flat_buffer buffer_;
     /// The underlying WebSocketRequestHandler for the WebSocketSession.
-    // WebSocketRequestHandler<WebSocketSession> handler_;
     WebSocketRequestHandler<Derived> handler_;
     /// Each session is uniquely identified with a random UUID.
     boost::uuids::uuid uuid_;
@@ -51,6 +50,19 @@ class WebSocketSession
     Derived& derived()
     {
         return static_cast<Derived&>(*this);
+    }
+
+    /// \brief Closes the underlying WebSocket stream.
+    void disconnect()
+    {
+        auto& ws = derived().stream();
+        ws.async_close(beast::websocket::close_code::none,
+                       [](beast::error_code const& ec) {
+                           if (ec) {
+                               LOG_ERROR("Error closing WebSocketSession: {}\n",
+                                         ec.message());
+                           }
+                       });
     }
 
     /// \brief Accepts the WebSocket handshake.
@@ -279,9 +291,10 @@ class WebSocketSession
         LOG_DEBUG("WeatherStatusNotification: {} {}\n",
                   _notification.temperature, _notification.humidity);
 
-        std::stringstream ss;
         auto const time = static_cast<std::time_t>(_notification.time);
-        ss << std::put_time(std::localtime(&time), "%Y-%m-%d %H:%M:%S");
+        auto const t = std::gmtime(&time);
+        std::stringstream ss;
+        ss << std::put_time(t, "%Y-%m-%d %H:%M:%S");
 
         // Prepare JSON response for frontend.
         auto response = JSON::object();
