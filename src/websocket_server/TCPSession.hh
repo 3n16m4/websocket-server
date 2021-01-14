@@ -53,6 +53,7 @@ class TCPSession
     {
         if (_error) {
             handler_.stop();
+            derived().disconnect();
             return;
         }
 

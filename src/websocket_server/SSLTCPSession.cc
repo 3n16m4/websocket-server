@@ -44,6 +44,8 @@ void SSLTCPSession::disconnect()
 {
     beast::get_lowest_layer(stream_).expires_after(Timeout);
 
+    stream_.next_layer().cancel();
+
     // Perform the async SSL shutdown.
     stream_.async_shutdown(
         [self = shared_from_this()](auto&& ec) { self->onShutdown(ec); });
