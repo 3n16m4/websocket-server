@@ -20,3 +20,4 @@ websocket::stream<beast::tcp_stream>& PlainWebSocketSession::stream() noexcept
 {
     return ws_;
 }
+

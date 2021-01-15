@@ -97,6 +97,7 @@ class TCPRequestHandler
     /// Whenever this timeout expires, a ping packet will be sent to the peer.
     asio::steady_timer pingTimer_;
 
+    /// TODO: Keep track of used UUIDs to reject handshake requests with duplicate UUIDs.
     HandlerReturnType handleHandshakePacket(BufferView const _view)
     {
         packet_view<in::HandshakePacket> const packet{_view.data()};
@@ -123,7 +124,7 @@ class TCPRequestHandler
 
         // Is the id in range?
         auto const id = static_cast<enum_type>(packet->stationId);
-        if (!(id >= 0 && id <= static_cast<enum_type>(StationId::Max))) {
+        if (!(id >= 0 && id < static_cast<enum_type>(StationId::Max))) {
             LOG_DEBUG("StationId is not in range.\n");
             return sendBadRequest(HandshakeReason::ReasonStationIdInvalid);
         }
@@ -222,12 +223,29 @@ class TCPRequestHandler
 
         WeatherStatusNotification notification;
         notification.id = session_.stationId();
-        /// TODO: save time from response!!!
         notification.temperature = packet->temperature;
         notification.humidity = packet->humidity;
+        notification.time = packet->time;
+
+        auto callback =
+            state.template findWebSocketSession<PlainWebSocketSession>(
+                uuid);
+
+        if (callback) {
+            callback(notification);
+        } else {
+            auto callback =
+                state.template findWebSocketSession<SSLWebSocketSession>(uuid);
+            if (callback) {
+                callback(notification);
+            } else {
+                LOG_ERROR("Not WebSocketSession found by such UUID!\n");
+            }
+        }
 
         /// notify webscket session about packet!
-        if (packet->flag == WebSocketSessionFlag::Plain) {
+        /*if (packet->flag == WebSocketSessionFlag::Plain) {
+            /// TODO: Refactor me!
             // obtain PlainWebSocketSession shared_ptr and call callback
             auto callback =
                 state.template findWebSocketSession<PlainWebSocketSession>(
@@ -235,12 +253,18 @@ class TCPRequestHandler
             if (callback) {
                 callback(notification);
             } else {
-                LOG_ERROR("WebSocketSession not found by UUID!!!\n");
+                LOG_ERROR("PlainWebSocketSession not found by UUID!!!\n");
             }
         } else if (packet->flag == WebSocketSessionFlag::SSL) {
             // obtain SSLWebSocketSession shared_ptr and call callback
-            // TODO: same thing!
-        }
+            auto callback =
+                state.template findWebSocketSession<SSLWebSocketSession>(uuid);
+            if (callback) {
+                callback(notification);
+            } else {
+                LOG_ERROR("SSLWebSocketSession not found by UUID!!!\n");
+            }
+        }*/
 
         return std::make_pair(ResultType::Good, packet.size());
     }

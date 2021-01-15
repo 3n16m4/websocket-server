@@ -1,0 +1,46 @@
+.select {
+    text-align: center;
+}
+
+.box {
+    height: 150px;
+    width: 80%;
+    background-color: #fefefe;
+    border: 1px solid #525252;
+    border-radius: 5px;
+    text-align: center;
+    position: relative;
+    float: right;
+    margin-right: 20px;
+    margin-bottom: 15px;
+}
+
+.stationdata {
+    width: 85%;
+    float: left;
+}
+
+.boxitem {
+    background-color: #f2f2f2;
+    width: 22%;
+    height: 70px;
+    float: left;
+    margin: 15px;
+    padding-top: 50px;
+    overflow: hidden;
+    font-size: large;
+}
+
+.buttonbox {
+    float: right;
+}
+
+.checkboxList {
+    list-style-type: none;
+    margin: 0;
+    padding: 10px;
+    border: 1px solid black;
+    width: 10%;
+    border-radius: 5px;
+    float: left;
+}

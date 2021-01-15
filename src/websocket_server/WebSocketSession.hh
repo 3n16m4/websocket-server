@@ -24,8 +24,6 @@
 #include <string>
 #include <string_view>
 #include <deque>
-/// TODO: remove me
-#include <iostream>
 
 namespace amadeus {
 /// CRTP is used here to avoid code duplication and virtual function calls.
@@ -42,19 +40,29 @@ class WebSocketSession
     /// The underlying buffer for requests.
     beast::flat_buffer buffer_;
     /// The underlying WebSocketRequestHandler for the WebSocketSession.
-    // WebSocketRequestHandler<WebSocketSession> handler_;
     WebSocketRequestHandler<Derived> handler_;
     /// Each session is uniquely identified with a random UUID.
     boost::uuids::uuid uuid_;
-    /// Each session holds a number of requested weather stations.
-    int numRequestedStations_{0};
-    /// Queue for the Weather statuses.
-    std::deque<WeatherStatusNotification> notifications_;
+    /// The send buffer
+    std::string outBuffer_;
 
     /// \brief Helper function to access the derived class.
     Derived& derived()
     {
         return static_cast<Derived&>(*this);
+    }
+
+    /// \brief Closes the underlying WebSocket stream.
+    void disconnect()
+    {
+        auto& ws = derived().stream();
+        ws.async_close(beast::websocket::close_code::none,
+                       [](beast::error_code const& ec) {
+                           if (ec) {
+                               LOG_ERROR("Error closing WebSocketSession: {}\n",
+                                         ec.message());
+                           }
+                       });
     }
 
     /// \brief Accepts the WebSocket handshake.
@@ -132,24 +140,29 @@ class WebSocketSession
     void onRead(beast::error_code const& _error, std::size_t _bytesTransferred)
     {
         // The WebSocket stream was gracefully closed at both endpoints
-        if (_error == websocket::error::closed) {
+        if (_error == websocket::error::closed ||
+            _error == ssl::error::stream_truncated) {
             LOG_DEBUG("WebSocketSession was gracefully closed.\n");
+            state_->leave<Derived>(uuid_);
             return;
         }
 
         if (_error) {
             LOG_ERROR("Read error: {}\n", _error.message());
+            state_->leave<Derived>(uuid_);
             return;
         }
 
         auto constexpr PayloadFieldLength = 2U;
         if (_bytesTransferred < PayloadFieldLength) {
             LOG_ERROR("Incoming request must be at least 2 bytes long!\n");
+            state_->leave<Derived>(uuid_);
             return;
         }
 
         if (buffer_.size() < _bytesTransferred) {
             LOG_ERROR("Payload is too big!\n");
+            state_->leave<Derived>(uuid_);
             return;
         }
 
@@ -187,38 +200,13 @@ class WebSocketSession
                     });
             } break;
             case ResultType::Indeterminate: {
-                // TODO:
+                // TODO: Read more data into buffer.
+            } break;
+            case ResultType::PayloadTooBig: {
+                // TODO: Send a bad request.
             } break;
             }
         }
-    }
-
-    /// \brief CompletionToken for the asynchronous write operation.
-    void onWrite(beast::error_code const& _error, std::size_t _bytesTransferred)
-    {
-        if (_error) {
-            LOG_ERROR("Write error: {}\n", _error.message());
-            return;
-        }
-
-        /// TODO: Erase the message from the front of the queue
-        /// send the next message from the queue if there's any.
-
-        // Broadcast the message to all connections.
-        // state_->send<Derived>(beast::buffers_to_string(buffer_.data()));
-
-        // Clear the buffer
-        // buffer_.consume(buffer_.size());
-
-        // Read another message
-        // doRead();
-    }
-
-    /// \brief CompletionToken for the send operation.
-    void onSend(std::shared_ptr<std::string const> const& _message)
-    {
-        /// TODO: queue work..
-        /// Send the message from the front of the queue.
     }
 
   public:
@@ -256,29 +244,33 @@ class WebSocketSession
         return uuid_;
     };
 
-    void numRequestedStations(int _val) noexcept
-    {
-        numRequestedStations_ = _val;
-    }
-
     template <typename CompletionHandler>
     void writeRequest(JSON _request, CompletionHandler&& _handler)
     {
+        LOG_INFO("JSON RESPONSE FOR FRONTEND: {}\n", _request.dump());
         // make sure the data is kept alive until it is fully sent
-        auto payload = std::move(_request);
-        auto const sp = std::make_shared<std::string>(payload.dump());
+        // auto payload = std::move(_request);
+        // auto sp = std::make_shared<std::string>(payload.dump());
+        outBuffer_ = std::move(_request.dump());
+
+        fmt::print("BYTES:\n");
+        for (auto const& b : outBuffer_) {
+            fmt::print("{:X} ", b);
+        }
+        fmt::print("\n");
 
         auto& ws = derived().stream();
-        ws.async_write(
-            asio::buffer(*sp), [self = derived().shared_from_this(),
-                                _handler = std::move(_handler)](
-                                   auto&& error, auto&& bytes_transferred) {
-                if (error) {
-                    LOG_ERROR("WS write error: {}\n", error.message());
-                    return;
-                }
-                _handler(bytes_transferred);
-            });
+        ws.async_write(asio::buffer(outBuffer_),
+                       [self = derived().shared_from_this(),
+                        _handler = std::move(_handler)](
+                           auto&& error, auto&& bytes_transferred) {
+                           if (error) {
+                               LOG_ERROR("WS write error: {}\n",
+                                         error.message());
+                               return;
+                           }
+                           _handler(bytes_transferred);
+                       });
     }
 
     /// \brief Start the asynchronous operation.
@@ -296,19 +288,6 @@ class WebSocketSession
             });
     }
 
-    /// \brief Sends a given message to all connected websocket sessions.
-    /// Called from the SharedState for each WebSocketSession.
-    void send(std::shared_ptr<std::string const> const& _message)
-    {
-        // Post our work to the strand, this ensures
-        // that the members of `this` will not be
-        // accessed concurrently.
-        asio::post(derived().stream().get_executor(),
-                   [self = derived().shared_from_this(), _message] {
-                       self->onSend(_message);
-                   });
-    }
-
     /// \brief Called each time a new Weather Status Response is received from a
     /// µc.
     void
@@ -317,51 +296,25 @@ class WebSocketSession
         LOG_DEBUG("WeatherStatusNotification: {} {}\n",
                   _notification.temperature, _notification.humidity);
 
-        if (notifications_.size() == numRequestedStations_) {
-            return;
-        }
+        auto const time = static_cast<std::time_t>(_notification.time);
+        auto const t = std::gmtime(&time);
+        std::stringstream ss;
+        ss << std::put_time(t, "%Y-%m-%d %H:%M:%S");
 
-        // buffer the notifications
-        notifications_.emplace_front(_notification);
+        // Prepare JSON response for frontend.
+        auto response = JSON::object();
+        response["id"] = ResponseType::WeatherStatus;
+        response["stationId"] = _notification.id;
+        response["temperature"] = _notification.temperature;
+        response["humidity"] = _notification.humidity;
+        response["time"] = ss.str();
 
-        // compare the amount of requested weather stations inside
-        // callback so that it can send the response back to the web socket
-        // session, once we received weather statuses from all stations.
-        if (notifications_.size() == numRequestedStations_) {
-            // Prepare JSON response for frontend.
-            auto response = JSON::object();
-            response["id"] = ResponseType::WeatherStatus;
-
-            auto stations = JSON::array();
-            while (!notifications_.empty()) {
-                auto const element = std::move(notifications_.front());
-                notifications_.pop_front();
-
-                std::cout << "element: "
-                          << magic_enum::enum_name<StationId>(element.id) << " "
-                          << element.temperature << " " << element.humidity
-                          << std::endl;
-
-                auto station = JSON::object();
-                station["stationId"] = element.id;
-                station["temperature"] = element.temperature;
-                station["humidity"] = element.humidity;
-                /// TODO: obtain time from µc!!! not from server!
-                station["time"] = "2021-01-01 14:03:55";
-
-                stations.push_back(std::move(station));
-            }
-            response["stations"] = std::move(stations);
-
-            // Send response back to frontend.
-            writeRequest(std::move(response), [](auto&& bytes_transferred) {
-                LOG_DEBUG("WeatherStatus Reponse was sent to frontend with {} "
-                          "bytes.\n",
-                          bytes_transferred);
-            });
-
-            numRequestedStations_ = 0;
-        }
+        // Send response back to frontend.
+        writeRequest(std::move(response), [](auto&& bytes_transferred) {
+            LOG_DEBUG("WeatherStatus Reponse was sent to frontend with {} "
+                      "bytes.\n",
+                      bytes_transferred);
+        });
     }
 };
 } // namespace amadeus

@@ -2,10 +2,8 @@
 
 docker() {
 	if hash podman 2>/dev/null; then
-		echo "podman"
         command podman "$@"
     else
-		echo "docker"
         command docker "$@"
     fi
 }

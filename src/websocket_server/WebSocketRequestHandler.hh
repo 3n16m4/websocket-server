@@ -7,6 +7,7 @@
 #include "websocket_server/Packets/Out/WeatherStatusPacket.hh"
 #include "websocket_server/SharedState.hh"
 #include "websocket_server/PlainTCPSession.hh"
+#include "websocket_server/SSLTCPSession.hh"
 
 #include <nlohmann/json.hpp>
 #include <magic_enum.hpp>
@@ -19,6 +20,16 @@ using JSON = nlohmann::json;
 /// discard the packet or just disconnect the session ?
 
 namespace amadeus {
+// helper type for the visitor #4
+template <class... Ts>
+struct overloaded : Ts...
+{
+    using Ts::operator()...;
+};
+// explicit deduction guide (not needed as of C++20)
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
+
 // in
 enum class RequestType
 {
@@ -52,7 +63,7 @@ class WebSocketRequestHandler
 
         if (_view.size() > MaxPayloadSize) {
             LOG_ERROR("Payload is too big to handle! Discarding packet...\n");
-            return std::make_pair(ResultType::Bad, 0);
+            return std::make_pair(ResultType::PayloadTooBig, 0);
         }
 
         auto const buffer = reinterpret_cast<std::uint8_t const*>(_view.data());
@@ -96,8 +107,6 @@ class WebSocketRequestHandler
 
     HandlerReturnType handleWeatherStatusRequest(std::size_t _size, JSON _json)
     {
-        /// TODO: Register callback each time we receive a response for the
-        /// weather status from the µc.
         LOG_DEBUG("WeatherStatusRequest JSON = {}\n", _json);
 
         // go through request
@@ -106,35 +115,84 @@ class WebSocketRequestHandler
         }
 
         auto const stations = _json["stationIds"];
-        session_.numRequestedStations(stations.size());
         LOG_DEBUG("Num Requested stations: {}\n", stations.size());
 
         auto& state = session_.sharedState();
         // for each stationId in the request, try to obtain a shared_ptr for the
         // tcp session (can be both plain or ssl)
         for (auto const id : stations) {
-            auto sp = state.findStation(id);
-            if (sp) {
-                LOG_DEBUG("shared_ptr found for session!\n");
-                // prepare payload
-                out::WeatherStatusPacket packet{};
-                std::memcpy(packet.uuid.data(), &session_.uuid(),
-                            packet.uuid.size());
+            SharedState::VariantType sp;
 
-                if constexpr (std::is_same_v<Session, PlainWebSocketSession>) {
-                    LOG_DEBUG("setting flag to Plain\n");
-                    packet.flag = WebSocketSessionFlag::Plain;
-                } else if constexpr (std::is_same_v<Session,
-                                                    SSLWebSocketSession>) {
+            // prepare payload
+            out::WeatherStatusPacket packet{};
+            std::memcpy(packet.uuid.data(), &session_.uuid(),
+                        packet.uuid.size());
+
+            // try to find either a plain or ssl tcp session
+            /*sp = state.template findStation<PlainTCPSession>(id);
+            if (sp) {
+                LOG_DEBUG("setting flag to Plain\n");
+                packet.flag = WebSocketSessionFlag::Plain;
+            } else {
+                sp = state.template findStation<SSLTCPSession>(id);
+                if (sp) {
+                    LOG_DEBUG("setting flag to SSL\n");
                     packet.flag = WebSocketSessionFlag::SSL;
                 }
+            }*/
 
-                // send weather request to µc
-                sp->writePacket(packet, [this](auto&& bytes_transferred) {
-                    LOG_INFO("WeatherStatusRequest sent with {} bytes.\n",
-                             bytes_transferred);
-                });
-            }
+            // BUG: Session typename does not specify the connected TCP Session
+            // type!!!
+            /*if constexpr (std::is_same_v<Session, PlainWebSocketSession>) {
+                LOG_DEBUG("setting flag to Plain\n");
+
+                packet.flag = WebSocketSessionFlag::Plain;
+                sp = state.template findStation<PlainTCPSession>(id);
+            } else if constexpr (std::is_same_v<Session, SSLWebSocketSession>) {
+                LOG_DEBUG("setting flag to SSL\n");
+
+                packet.flag = WebSocketSessionFlag::SSL;
+                sp = state.template findStation<SSLTCPSession>(id);
+            }*/
+
+            sp = state.findStation(id);
+            std::visit(
+                overloaded{
+                    [&](std::shared_ptr<PlainTCPSession> const& ptr) {
+                        if (ptr) {
+                            LOG_DEBUG("setting flag to Plain\n");
+                            packet.flag = WebSocketSessionFlag::Plain;
+                            LOG_DEBUG("shared_ptr<PlainTCPSession> found for "
+                                      "session with id {}!\n",
+                                      id);
+                            // send weather request to µc
+                            ptr->writePacket(
+                                packet, [this](auto&& bytes_transferred) {
+                                    LOG_INFO("WeatherStatusRequest sent with "
+                                             "{} bytes.\n",
+                                             bytes_transferred);
+                                });
+                        }
+                    },
+                    [&](std::shared_ptr<SSLTCPSession> const& ptr) {
+                        if (ptr) {
+                            LOG_DEBUG("setting flag to SSL\n");
+                            packet.flag = WebSocketSessionFlag::SSL;
+                            LOG_DEBUG("shared_ptr<SSLTCPSession> found for "
+                                      "session with id {}!\n",
+                                      id);
+                            // send weather request to µc
+                            ptr->writePacket(
+                                packet, [this](auto&& bytes_transferred) {
+                                    LOG_INFO("WeatherStatusRequest sent with "
+                                             "{} bytes.\n",
+                                             bytes_transferred);
+                                });
+                        }
+                    },
+                    [&](std::monostate) { LOG_ERROR("No StationId found!\n"); },
+                },
+                sp);
         }
 
         return std::make_pair(ResultType::Good, _size);
