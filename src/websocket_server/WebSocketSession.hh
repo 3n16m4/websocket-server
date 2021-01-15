@@ -24,6 +24,7 @@
 #include <string>
 #include <string_view>
 #include <deque>
+#include <iomanip>
 
 namespace amadeus {
 /// CRTP is used here to avoid code duplication and virtual function calls.
