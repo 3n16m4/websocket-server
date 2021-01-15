@@ -40,15 +40,29 @@ class WebSocketSession
     /// The underlying buffer for requests.
     beast::flat_buffer buffer_;
     /// The underlying WebSocketRequestHandler for the WebSocketSession.
-    // WebSocketRequestHandler<WebSocketSession> handler_;
     WebSocketRequestHandler<Derived> handler_;
     /// Each session is uniquely identified with a random UUID.
     boost::uuids::uuid uuid_;
+    /// The send buffer
+    std::string outBuffer_;
 
     /// \brief Helper function to access the derived class.
     Derived& derived()
     {
         return static_cast<Derived&>(*this);
+    }
+
+    /// \brief Closes the underlying WebSocket stream.
+    void disconnect()
+    {
+        auto& ws = derived().stream();
+        ws.async_close(beast::websocket::close_code::none,
+                       [](beast::error_code const& ec) {
+                           if (ec) {
+                               LOG_ERROR("Error closing WebSocketSession: {}\n",
+                                         ec.message());
+                           }
+                       });
     }
 
     /// \brief Accepts the WebSocket handshake.
@@ -228,21 +242,30 @@ class WebSocketSession
     template <typename CompletionHandler>
     void writeRequest(JSON _request, CompletionHandler&& _handler)
     {
+        LOG_INFO("JSON RESPONSE FOR FRONTEND: {}\n", _request.dump());
         // make sure the data is kept alive until it is fully sent
-        auto payload = std::move(_request);
-        auto const sp = std::make_shared<std::string>(payload.dump());
+        // auto payload = std::move(_request);
+        // auto sp = std::make_shared<std::string>(payload.dump());
+        outBuffer_ = std::move(_request.dump());
+
+        fmt::print("BYTES:\n");
+        for (auto const& b : outBuffer_) {
+            fmt::print("{:X} ", b);
+        }
+        fmt::print("\n");
 
         auto& ws = derived().stream();
-        ws.async_write(
-            asio::buffer(*sp), [self = derived().shared_from_this(),
-                                _handler = std::move(_handler)](
-                                   auto&& error, auto&& bytes_transferred) {
-                if (error) {
-                    LOG_ERROR("WS write error: {}\n", error.message());
-                    return;
-                }
-                _handler(bytes_transferred);
-            });
+        ws.async_write(asio::buffer(outBuffer_),
+                       [self = derived().shared_from_this(),
+                        _handler = std::move(_handler)](
+                           auto&& error, auto&& bytes_transferred) {
+                           if (error) {
+                               LOG_ERROR("WS write error: {}\n",
+                                         error.message());
+                               return;
+                           }
+                           _handler(bytes_transferred);
+                       });
     }
 
     /// \brief Start the asynchronous operation.
@@ -268,9 +291,10 @@ class WebSocketSession
         LOG_DEBUG("WeatherStatusNotification: {} {}\n",
                   _notification.temperature, _notification.humidity);
 
-        std::stringstream ss;
         auto const time = static_cast<std::time_t>(_notification.time);
-        ss << std::put_time(std::localtime(&time), "%Y-%m-%d %H:%M:%S");
+        auto const t = std::gmtime(&time);
+        std::stringstream ss;
+        ss << std::put_time(t, "%Y-%m-%d %H:%M:%S");
 
         // Prepare JSON response for frontend.
         auto response = JSON::object();
