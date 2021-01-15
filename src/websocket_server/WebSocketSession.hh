@@ -140,24 +140,29 @@ class WebSocketSession
     void onRead(beast::error_code const& _error, std::size_t _bytesTransferred)
     {
         // The WebSocket stream was gracefully closed at both endpoints
-        if (_error == websocket::error::closed) {
+        if (_error == websocket::error::closed ||
+            _error == ssl::error::stream_truncated) {
             LOG_DEBUG("WebSocketSession was gracefully closed.\n");
+            state_->leave<Derived>(uuid_);
             return;
         }
 
         if (_error) {
             LOG_ERROR("Read error: {}\n", _error.message());
+            state_->leave<Derived>(uuid_);
             return;
         }
 
         auto constexpr PayloadFieldLength = 2U;
         if (_bytesTransferred < PayloadFieldLength) {
             LOG_ERROR("Incoming request must be at least 2 bytes long!\n");
+            state_->leave<Derived>(uuid_);
             return;
         }
 
         if (buffer_.size() < _bytesTransferred) {
             LOG_ERROR("Payload is too big!\n");
+            state_->leave<Derived>(uuid_);
             return;
         }
 
