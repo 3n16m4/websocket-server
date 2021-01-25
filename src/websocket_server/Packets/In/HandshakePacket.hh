@@ -4,8 +4,7 @@
 #include <array>
 
 namespace amadeus {
-/// TODO: Maybe extend to something for meaningful such as "LivingRoom",
-/// "Bathroom", "Garden", etc.
+/// \brief Defines the available station ids.
 enum class StationId : std::uint8_t
 {
     Goe = 0,
@@ -16,10 +15,14 @@ enum class StationId : std::uint8_t
 
 #pragma pack(push, 1)
 namespace in {
+/// \brief Defines the HandshakePacket which is received from a connected TPC Client.
 struct HandshakePacket
 {
+    /// Packet header.
     std::uint8_t header{};
+    /// A unique identifier for the corresponding TCP Client which is used for authentication.
     std::array<std::uint8_t, 16> uuid;
+    /// Another unique identifier to map the TCP Client.
     StationId stationId;
 };
 #pragma pack(pop)
