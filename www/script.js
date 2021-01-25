@@ -7,6 +7,19 @@ const weatherData = {};
 const host = "wss://weather-station.cloudns.asia:8081";
 var ws = new WebSocket(host);
 
+window.addEventListener('beforeunload', (event) => {
+    ws.close();
+    event.returnValue = '';
+});
+
+function strencode(data) {
+    return unescape(encodeURIComponent(JSON.stringify(data)));
+}
+
+function strdecode(data) {
+    return JSON.parse(decodeURIComponent(escape(data)));
+}
+
 function connectToServer() {
     ws = new WebSocket(host);
     requestStations();
@@ -27,10 +40,11 @@ ws.onclose = function (e) {
 function requestStations() {
     ws.onopen = () => {
         sendStationRequest();
-        (function () {
+        refreshData();
+        /*(function () {
             refreshData();
             setTimeout(arguments.callee, 10000);
-        })();
+        })();*/
     }
 }
 
@@ -146,7 +160,8 @@ function idToName(id) {
 }
 
 function parseResponse(json) {
-    json = JSON.parse(json);
+    console.log("JSON RESPONSE: " + json);
+    json = strdecode(json);
     switch (json.id) {
         case STATIONIDS_RESPONSE:
             stationsJSON = json;

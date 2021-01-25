@@ -249,10 +249,7 @@ class WebSocketSession
     void writeRequest(JSON _request, CompletionHandler&& _handler)
     {
         LOG_INFO("JSON RESPONSE FOR FRONTEND: {}\n", _request.dump());
-        // make sure the data is kept alive until it is fully sent
-        // auto payload = std::move(_request);
-        // auto sp = std::make_shared<std::string>(payload.dump());
-        outBuffer_ = std::move(_request.dump());
+        outBuffer_ = _request.dump();
 
         fmt::print("BYTES:\n");
         for (auto const& b : outBuffer_) {
@@ -261,7 +258,7 @@ class WebSocketSession
         fmt::print("\n");
 
         auto& ws = derived().stream();
-        ws.async_write(asio::buffer(outBuffer_),
+        ws.async_write(asio::buffer(outBuffer_.data(), outBuffer_.size()),
                        [self = derived().shared_from_this(),
                         _handler = std::move(_handler)](
                            auto&& error, auto&& bytes_transferred) {
