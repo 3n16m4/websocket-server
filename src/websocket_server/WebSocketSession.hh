@@ -261,17 +261,15 @@ class WebSocketSession
         fmt::print("\n");
 
         auto& ws = derived().stream();
-        ws.async_write(asio::buffer(outBuffer_),
-                       [self = derived().shared_from_this(),
-                        _handler = std::move(_handler)](
-                           auto&& error, auto&& bytes_transferred) {
-                           if (error) {
-                               LOG_ERROR("WS write error: {}\n",
-                                         error.message());
-                               return;
-                           }
-                           _handler(bytes_transferred);
-                       });
+        ws.async_write(outBuffer_, [self = derived().shared_from_this(),
+                                    _handler = std::move(_handler)](
+                                       auto&& error, auto&& bytes_transferred) {
+            if (error) {
+                LOG_ERROR("WS write error: {}\n", error.message());
+                return;
+            }
+            _handler(bytes_transferred);
+        });
     }
 
     /// \brief Start the asynchronous operation.
