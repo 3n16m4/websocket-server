@@ -91,6 +91,7 @@ class WebSocketSession
     }
 
     /// \brief CompletionToken for the asynchronous accept operation.
+    /// \param _error The error.
     void onAccept(beast::error_code const& _error)
     {
         if (_error) {
@@ -120,6 +121,10 @@ class WebSocketSession
         }
     }
 
+    /// \brief The asynchronous CompletionToken which is called whenever a
+    /// control frame packet is received from the frontend.
+    /// \param _kind The kind of control frame.
+    /// \param _payload The actual payload of the control frame.
     void onControlMessage(websocket::frame_type _kind,
                           beast::string_view _payload)
     {
@@ -138,6 +143,9 @@ class WebSocketSession
     }
 
     /// \brief CompletionToken for the asynchronous read operation.
+    /// \param _error The error.
+    /// \param _bytesTransferred The number of bytes transferred by the
+    /// WebSocketSession's asynchronous read operation.
     void onRead(beast::error_code const& _error, std::size_t _bytesTransferred)
     {
         // The WebSocket stream was gracefully closed at both endpoints
@@ -212,9 +220,9 @@ class WebSocketSession
 
   public:
     /// \brief Creates a WebSocket Session.
+    /// \param _state The SharedState.
     explicit WebSocketSession(std::shared_ptr<SharedState> _state)
         : state_(std::move(_state))
-        //, handler_(*this)
         , handler_(derived())
     {
         LOG_DEBUG("WebSocketSession::WebSocketSession()\n");
@@ -245,6 +253,12 @@ class WebSocketSession
         return uuid_;
     };
 
+    /// \brief Writes a request packet to the output buffer asynchronously and
+    /// informs the caller by the given CompletionHandler.
+    /// \tparam CompletionHandler A valid completion handler for the
+    /// asynchronous operation to be notified.
+    /// \param _request The JSON payload to be sent.
+    /// \param _handler The completion handler.
     template <typename CompletionHandler>
     void writeRequest(JSON _request, CompletionHandler&& _handler)
     {
@@ -288,6 +302,8 @@ class WebSocketSession
 
     /// \brief Called each time a new Weather Status Response is received from a
     /// µc.
+    /// \param _notification The actual weather status data from the TCP
+    /// connection.
     void
     onWeatherStatusNotification(WeatherStatusNotification const& _notification)
     {

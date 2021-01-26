@@ -19,8 +19,9 @@ auto constexpr PingTimeout{30s};
 /// The timeout for whenever a pong packet is expected from the peer.
 auto constexpr PongTimeout{10s};
 
-/// Identifies the API version of the server.
+/// \def Identifies the API version of the server.
 #define SERVER_VERSION 10
+/// \def Identifies the server version.
 #define SERVER_VERSION_STRING                                                  \
     "websocket-server/" BOOST_STRINGIZE(SERVER_VERSION)
 } // namespace amadeus

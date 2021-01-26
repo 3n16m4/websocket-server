@@ -15,6 +15,8 @@
 #include <chrono>
 
 namespace amadeus {
+/// \brief Defines the LoggerSeverity enum which essentially represents the
+/// level for logging.
 enum class LoggerSeverity
 {
     Info,
@@ -28,6 +30,8 @@ enum class LoggerSeverity
 namespace details {
 using ClockType = std::chrono::system_clock;
 
+/// \brief The internal LogMessage which contains a timestamp, the source
+/// location, the logger severity and the actual message.
 class LogMessage final
 {
   public:
@@ -67,14 +71,24 @@ class LogMessage final
 };
 } // namespace details
 
+/// \brief Represents a simple singleton Logger class design for writing to
+/// stdout and files.
 class Logger final
 {
   public:
+    /// \brief The default constructor.
     Logger() = default;
+    /// \brief Constructor.
+    /// \param _filename The filename where the log file will be written and
+    /// saved to. \param _console Whether to output the log to the console or
+    /// not.
     Logger(std::string const& _filename, bool _console = true);
 
+    /// \brief Creates an instance for the logger or returns the current
+    /// instance if one has already been created.
     static Logger& instance() noexcept;
 
+    /// \brief Helper function for logging to console.
     template <typename FormatString, typename... Args>
     void log(source_location const& _loc, LoggerSeverity _severity,
              FormatString const& _fmt, Args&&... _args)
@@ -84,6 +98,7 @@ class Logger final
         }
     }
 
+    /// \brief Helper function for logging to console.
     template <typename... Args>
     void print(std::string_view _fmt, Args&&... _args)
     {
@@ -92,6 +107,7 @@ class Logger final
         }
     }
 
+    /// \brief Helper function for logging to console.
     template <typename... Args>
     void print(FILE* _file, std::string_view _fmt, Args&&... _args)
     {
@@ -100,22 +116,34 @@ class Logger final
         }
     }
 
+    /// \brief Returns the severity for the logger.
     LoggerSeverity severity() const noexcept;
 
+    /// \brief Sets the severity for the logger.
+    /// \param _severity The severity to set.
     void severity(LoggerSeverity _severity) noexcept;
 
+    /// \brief Returns the filename for the logger.
     std::string const& filename() const noexcept;
 
+    /// \brief Opens a filestream with a given filename.
+    /// \param _filename The file to open.
     void open(std::string&& _filename);
 
+    /// \brief Returns true if the output should be written to the console,
+    /// otherwise returns false.
     bool hasConsoleSink() const noexcept;
 
   private:
+    /// \brief Returns true if the given log severity is active.
+    /// \param _severity The given log severity to check.
     constexpr bool shouldLog(LoggerSeverity _severity) const noexcept
     {
         return _severity >= severity_;
     }
 
+    /// \brief Returns the color by a given log severity.
+    /// \param _severity The given log severity.
     constexpr fmt::color colorBySeverity(LoggerSeverity _severity) noexcept
     {
         switch (_severity) {
@@ -135,8 +163,10 @@ class Logger final
         return fmt::color::white;
     }
 
+    /// \brief Helper function for logging to console.
     void log(details::LogMessage const& _msg, LoggerSeverity _severity);
 
+    /// \brief Helper function for logging to console.
     template <typename FormatString, typename... Args>
     void _log(source_location _loc, LoggerSeverity _severity,
               FormatString const& _fmt, Args&&... _args)
@@ -148,24 +178,35 @@ class Logger final
         log(msg, _severity);
     }
 
+    /// The file to save the log file.
     std::string filename_;
+    /// Whether to write to the console or not.
     bool console_{true};
+    /// The filestream.
     std::ofstream fileStream_;
+    /// The logger severity.
     LoggerSeverity severity_{LoggerSeverity::Info};
 };
 } // namespace amadeus
 
+/// \def Internal macro for invoking the log function with the singleton and a
+/// given log severity.
 #define LOGGER_CALL(level, ...)                                                \
     (Logger::instance()).log(source_location::current(), level, __VA_ARGS__)
 
+/// \def Macro for invoking the log function with the INFO severity.
 #define LOG_INFO(...) LOGGER_CALL(LoggerSeverity::Info, __VA_ARGS__)
 
+/// \def Macro for invoking the log function with the DEBUG severity.
 #define LOG_DEBUG(...) LOGGER_CALL(LoggerSeverity::Debug, __VA_ARGS__)
 
+/// \def Macro for invoking the log function with the WARN severity.
 #define LOG_WARN(...) LOGGER_CALL(LoggerSeverity::Warn, __VA_ARGS__)
 
+/// \def Macro for invoking the log function with the ERROR severity.
 #define LOG_ERROR(...) LOGGER_CALL(LoggerSeverity::Error, __VA_ARGS__)
 
+/// \def Macro for invoking the log function with the FATAL severity.
 #define LOG_FATAL(...) LOGGER_CALL(LoggerSeverity::Fatal, __VA_ARGS__)
 
 #endif // !WEBSOCKET_SERVER_LOGGER_HH

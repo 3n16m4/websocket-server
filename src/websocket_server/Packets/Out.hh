@@ -10,6 +10,8 @@
 
 namespace amadeus {
 namespace out {
+/// \brief Defines the PacketType enum which represents all incoming packets
+/// from the TCP connections.
 enum class PacketType : std::uint8_t
 {
     Handshake = 0x00,
@@ -18,7 +20,7 @@ enum class PacketType : std::uint8_t
     Ping = 0x03,
     WeatherStatus = 0x04,
 };
-}
+} // namespace out
 } // namespace amadeus
 
 #endif // !WEBSOCKET_SERVER_OUT_HH

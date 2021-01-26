@@ -4,6 +4,7 @@
 #include "websocket_server/Listener.hh"
 
 namespace amadeus {
+/// Alias for a Plain TCP Listener.
 using PlainTCPListener = Listener<PlainTCPSession>;
 } // namespace amadeus
 

@@ -4,6 +4,7 @@
 #include "websocket_server/Listener.hh"
 
 namespace amadeus {
+/// Alias for a Secure HTTP Listener.
 using SSLHttpListener = Listener<SSLHttpSession>;
 } // namespace amadeus
 

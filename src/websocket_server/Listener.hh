@@ -94,6 +94,7 @@ class Listener
     {
     }
 
+    /// \brief Destructor.
     ~Listener()
     {
         LOG_DEBUG("Listener::~Listener()\n");

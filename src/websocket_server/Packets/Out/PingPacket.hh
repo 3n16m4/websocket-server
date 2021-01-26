@@ -4,8 +4,12 @@
 namespace amadeus {
 #pragma pack(push, 1)
 namespace out {
+/// \brief Defines the PingPacket which is sent by the server every 30 seconds
+/// to the TCP Client. This mechanism (ping - pong) ensures that both sides are
+/// still connected and thus acts as a heartbeat between the two endpoints.
 struct PingPacket
 {
+    /// Packet header.
     std::uint8_t header{0x03};
 };
 #pragma pack(pop)

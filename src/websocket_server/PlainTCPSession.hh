@@ -6,6 +6,9 @@
 #include <boost/beast/core/tcp_stream.hpp>
 
 namespace amadeus {
+/// \brief Describes a simple PlainTCPSession which derives from the CRTP
+/// TCPSession class. Represents a single Plain TCP Session on the network which
+/// describes a µC connection.
 class PlainTCPSession
     : public TCPSession<PlainTCPSession>
     , public std::enable_shared_from_this<PlainTCPSession>
@@ -19,6 +22,7 @@ class PlainTCPSession
     PlainTCPSession(asio::io_context& _ioc, tcp::socket&& _socket,
                     std::shared_ptr<SharedState> _state);
 
+    /// \brief Destructor.
     ~PlainTCPSession();
 
     /// \brief Return the underlying TCP stream.

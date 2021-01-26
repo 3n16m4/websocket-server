@@ -26,18 +26,18 @@
 #include <string>
 #include <stdexcept>
 
-// Return a reasonable mime type based on the extension of a file.
+/// \brief Return a reasonable mime type based on the extension of a file.
 beast::string_view mime_type(beast::string_view path);
 
-// Append an HTTP rel-path to a local filesystem path.
-// The returned path is normalized for the platform.
+/// \brief Append an HTTP rel-path to a local filesystem path. The returned path
+/// is normalized for the platform.
 std::string path_cat(beast::string_view base, beast::string_view path);
 
 namespace amadeus {
-// This function produces an HTTP response for the given
-// request. The type of the response object depends on the
-// contents of the request, so the interface requires the
-// caller to pass a generic lambda for receiving the response.
+/// \brief This function produces an HTTP response for the given
+/// request. The type of the response object depends on the
+/// contents of the request, so the interface requires the
+/// caller to pass a generic lambda for receiving the response.
 template <class Body, class Allocator, class Send>
 void handle_request(beast::string_view doc_root,
                     http::request<Body, http::basic_fields<Allocator>>&& req,
@@ -232,6 +232,7 @@ class HttpSession
         LOG_DEBUG("HttpSession::HttpSession()\n");
     }
 
+    /// \brief Destructor.
     ~HttpSession()
     {
         LOG_DEBUG("HttpSession::~HttpSession()\n");
@@ -254,12 +255,6 @@ class HttpSession
                              auto&& ec, auto&& bytes_transferred) {
                              self->onRead(ec, bytes_transferred);
                          });
-    }
-
-    /// \brief Starts the asynchronous write operation.
-    void doWrite()
-    {
-        throw std::runtime_error("NotImplemented");
     }
 };
 } // namespace amadeus

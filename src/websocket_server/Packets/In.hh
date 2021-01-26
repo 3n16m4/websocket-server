@@ -10,6 +10,8 @@
 
 namespace amadeus {
 namespace in {
+/// \brief Defines the PacketType enum which represents all outgoing packets
+/// from the server.
 enum class PacketType : std::uint8_t
 {
     Handshake = 0x00,
@@ -18,6 +20,8 @@ enum class PacketType : std::uint8_t
 };
 
 /// \brief Returns the exact size of the packet by a given valid PacketId.
+/// \param _id The packet id.
+/// \return Exact size of the packet or 0 if packet id is not valid.
 constexpr std::size_t sizeByPacketId(PacketType _id) noexcept
 {
     switch (_id) {
@@ -33,6 +37,10 @@ constexpr std::size_t sizeByPacketId(PacketType _id) noexcept
     return 0;
 }
 
+/// \brief Helper function for retrieving the packet name by a given packet id.
+/// \param _id The packet id.
+/// \returns immutable read-only string mapped to the given packet id or
+/// 'unknown' if the supplied packet id is not valid.
 constexpr std::string_view packetNameById(PacketType _id) noexcept
 {
     switch (_id) {

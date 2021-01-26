@@ -14,16 +14,15 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
-/// \brief The TCPRequestHandler for incoming µc-TCP requests.
-/// A TCPRequestHandler can vary in its design and underlying data structure
-/// choice which heavily depends on the network partner (server).
-/// Each TCPRequestHandler implementation however, must override the handle
-/// method and call its specific handlers inside it.
 namespace amadeus {
 namespace in {
 enum class PacketType : std::uint8_t;
 } // namespace in
 
+/// \brief The TCPRequestHandler for incoming µc-TCP requests. This class works
+/// both for PlainTCPSessions and SSLTCPSessions. It includes a simple handler
+/// for incoming packets and is able to parse them accordingly.
+/// \tparam Session PlainTCPSession or SSLTCPSession.
 template <class Session>
 class TCPRequestHandler
 {
@@ -32,6 +31,8 @@ class TCPRequestHandler
     using PacketIdType = std::underlying_type<in::PacketType>::type;
 
     /// \brief Constructor.
+    /// \param _ioc A reference to the io_context.
+    /// \param _session A reference to the given Session.
     TCPRequestHandler(asio::io_context& _ioc, Session& _session)
         : session_(_session)
         , pingTimer_(_ioc, PingTimeout)
@@ -79,13 +80,11 @@ class TCPRequestHandler
         return std::make_pair(ResultType::Bad, 0);
     }
 
+    /// \brief Stops the internal ping and pong timers.
     void stop()
     {
         pingTimer_.cancel();
         pongTimer_.cancel();
-
-        // auto& session = session_.derived();
-        // session.disconnect();
     }
 
   private:
@@ -97,7 +96,12 @@ class TCPRequestHandler
     /// Whenever this timeout expires, a ping packet will be sent to the peer.
     asio::steady_timer pingTimer_;
 
-    /// TODO: Keep track of used UUIDs to reject handshake requests with duplicate UUIDs.
+    /// TODO: Keep track of used UUIDs to reject handshake requests with
+    /// duplicate UUIDs.
+    /// \brief Handler function for the incoming HandshakePacket from the TCP
+    /// connection.
+    /// \param _view A read-only immutable packet view of the incoming TCP
+    /// frame.
     HandlerReturnType handleHandshakePacket(BufferView const _view)
     {
         packet_view<in::HandshakePacket> const packet{_view.data()};
@@ -195,6 +199,10 @@ class TCPRequestHandler
         return std::make_pair(ResultType::Good, packet.size());
     }
 
+    /// \brief Handler function for the incoming PongPacket from the TCP
+    /// connection.
+    /// \param _view A read-only immutable packet view of the incoming TCP
+    /// frame.
     HandlerReturnType handlePongPacket(BufferView const _view)
     {
         packet_view<in::PongPacket> const packet{_view.data()};
@@ -206,6 +214,10 @@ class TCPRequestHandler
         return std::make_pair(ResultType::Good, packet.size());
     }
 
+    /// \brief Handler function for the incoming WeatherStatusPacket from the
+    /// TCP connection.
+    /// \param _view A read-only immutable packet view of the incoming TCP
+    /// frame.
     HandlerReturnType handleWeatherStatusPacket(BufferView const _view) const
     {
         packet_view<in::WeatherStatusPacket> const packet{_view.data()};
@@ -228,8 +240,7 @@ class TCPRequestHandler
         notification.time = packet->time;
 
         auto callback =
-            state.template findWebSocketSession<PlainWebSocketSession>(
-                uuid);
+            state.template findWebSocketSession<PlainWebSocketSession>(uuid);
 
         if (callback) {
             callback(notification);
@@ -243,32 +254,10 @@ class TCPRequestHandler
             }
         }
 
-        /// notify webscket session about packet!
-        /*if (packet->flag == WebSocketSessionFlag::Plain) {
-            /// TODO: Refactor me!
-            // obtain PlainWebSocketSession shared_ptr and call callback
-            auto callback =
-                state.template findWebSocketSession<PlainWebSocketSession>(
-                    uuid);
-            if (callback) {
-                callback(notification);
-            } else {
-                LOG_ERROR("PlainWebSocketSession not found by UUID!!!\n");
-            }
-        } else if (packet->flag == WebSocketSessionFlag::SSL) {
-            // obtain SSLWebSocketSession shared_ptr and call callback
-            auto callback =
-                state.template findWebSocketSession<SSLWebSocketSession>(uuid);
-            if (callback) {
-                callback(notification);
-            } else {
-                LOG_ERROR("SSLWebSocketSession not found by UUID!!!\n");
-            }
-        }*/
-
         return std::make_pair(ResultType::Good, packet.size());
     }
 
+    /// \brief Starts the interal asynchronous ping timer.
     void startPingTimer()
     {
         pingTimer_.async_wait(
@@ -276,6 +265,7 @@ class TCPRequestHandler
                 auto&& _error) { onPingTimeout(_error); });
     }
 
+    /// \brief Starts the interal asynchronous pong timer.
     void startPongTimer()
     {
         pongTimer_.expires_after(PongTimeout);
@@ -284,18 +274,22 @@ class TCPRequestHandler
                 auto&& _error) { onPongTimeout(_error); });
     }
 
+    /// \brief Restarts the interal asynchronous ping timer.
     void restartPingTimer()
     {
         pingTimer_.expires_at(pingTimer_.expiry() + PingTimeout);
         startPingTimer();
     }
 
+    /// \brief Restarts the interal asynchronous pong timer.
     void restartPongTimer()
     {
         pongTimer_.expires_at(pongTimer_.expiry() + PongTimeout);
         startPongTimer();
     }
 
+    /// \brief The asynchronous completion token for the ping timeout.
+    /// \param _error The error.
     void onPingTimeout(boost::system::error_code const& _error)
     {
         if (_error == asio::error::operation_aborted) {
@@ -311,6 +305,8 @@ class TCPRequestHandler
         restartPingTimer();
     }
 
+    /// \brief The asynchronous completion token for the pong timeout.
+    /// \param _error The error.
     void onPongTimeout(boost::system::error_code const& _error)
     {
         if (_error == asio::error::operation_aborted) {

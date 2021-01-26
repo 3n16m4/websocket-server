@@ -30,20 +30,24 @@ struct overloaded : Ts...
 template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
-// in
+/// \brief Defines the RequestType enum which includes the incoming WebSocket
+/// requests.
 enum class RequestType
 {
     WeatherStatus = 0x00,
     AvailableStations = 0x01,
 };
 
-// out
+/// \brief Defines the ResponseType enum which includes the outgoing WebSocket
+/// responses.
 enum class ResponseType
 {
     WeatherStatus = 0x00,
     AvailableStations = 0x01,
 };
 
+/// \brief Similar to the \ref TCPRequestHandler, this request handler is
+/// responsible for handling the JSON requests from the WebSocket session.
 template <class Session>
 class WebSocketRequestHandler
 {
@@ -52,11 +56,29 @@ class WebSocketRequestHandler
     Session& session_;
 
   public:
+    /// \brief Creates a new WebSocketRequestHandler.
+    /// \param _session A reference to the Session.
     WebSocketRequestHandler(Session& _session)
         : session_(_session)
     {
     }
 
+    /// \brief Parse some data. The enum return value is 'Good' when a
+    /// complete request has been parsed, 'Bad' if the data is invalid,
+    /// 'Indeterminate' when more data is required. The std::size_t return
+    /// value indicates how much of the input has been consumed. See \ref
+    /// HandlerReturnType for more details.
+    /// This is very similar to the handle function from \ref TCPRequestHandler.
+    /// However, as we receive JSON data, we need to parse the packet
+    /// differently.
+    /// Each JSON packet contains a 2 byte big endian frame at the beginning of
+    /// the frame. This marks the size of the actual payload which directly sits
+    /// after the 2 bytes. As such, we can simply parse the first 2 bytes,
+    /// extract the size and read the actual payload which is offsetted by 2
+    /// bytes.
+    /// Example: 04 00 01 02 03 04
+    /// Size:    04 00 --> 04 --> 4 bytes
+    /// Payload: 01 02 03 04
     HandlerReturnType handle(BufferView const _view)
     {
         auto constexpr MaxPayloadSize = 512U;
@@ -105,6 +127,10 @@ class WebSocketRequestHandler
         return std::make_pair(ResultType::Bad, 0);
     }
 
+    /// \brief Handler function for the incoming WeatherStatusRequest from the
+    /// WebSocket connection.
+    /// \param _size The size of the JSON payload.
+    /// \param _json The entire JSON payload.
     HandlerReturnType handleWeatherStatusRequest(std::size_t _size, JSON _json)
     {
         LOG_DEBUG("WeatherStatusRequest JSON = {}\n", _json);
@@ -127,33 +153,6 @@ class WebSocketRequestHandler
             out::WeatherStatusPacket packet{};
             std::memcpy(packet.uuid.data(), &session_.uuid(),
                         packet.uuid.size());
-
-            // try to find either a plain or ssl tcp session
-            /*sp = state.template findStation<PlainTCPSession>(id);
-            if (sp) {
-                LOG_DEBUG("setting flag to Plain\n");
-                packet.flag = WebSocketSessionFlag::Plain;
-            } else {
-                sp = state.template findStation<SSLTCPSession>(id);
-                if (sp) {
-                    LOG_DEBUG("setting flag to SSL\n");
-                    packet.flag = WebSocketSessionFlag::SSL;
-                }
-            }*/
-
-            // BUG: Session typename does not specify the connected TCP Session
-            // type!!!
-            /*if constexpr (std::is_same_v<Session, PlainWebSocketSession>) {
-                LOG_DEBUG("setting flag to Plain\n");
-
-                packet.flag = WebSocketSessionFlag::Plain;
-                sp = state.template findStation<PlainTCPSession>(id);
-            } else if constexpr (std::is_same_v<Session, SSLWebSocketSession>) {
-                LOG_DEBUG("setting flag to SSL\n");
-
-                packet.flag = WebSocketSessionFlag::SSL;
-                sp = state.template findStation<SSLTCPSession>(id);
-            }*/
 
             sp = state.findStation(id);
             std::visit(
@@ -198,6 +197,10 @@ class WebSocketRequestHandler
         return std::make_pair(ResultType::Good, _size);
     }
 
+    /// \brief Handler function for the incoming AvailableStationsRequest from
+    /// the WebSocket connection.
+    /// \param _size The size of the JSON payload.
+    /// \param _json The entire JSON payload.
     HandlerReturnType handleAvailableStations(std::size_t _size, JSON _json)
     {
         LOG_DEBUG("AvailableStationsRequest JSON = {}\n", _json);

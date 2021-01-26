@@ -4,6 +4,7 @@
 #include "websocket_server/Listener.hh"
 
 namespace amadeus {
+/// Alias for a Secure TCP Listener.
 using SSLTCPListener = Listener<SSLTCPSession>;
 } // namespace amadeus
 

@@ -4,6 +4,8 @@
 #include <cstdint>
 
 namespace amadeus {
+/// \brief Helper class because this project is built with a C++17 compiler and
+/// not C++20.
 class source_location
 {
   public:

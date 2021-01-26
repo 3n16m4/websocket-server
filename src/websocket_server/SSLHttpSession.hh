@@ -6,11 +6,9 @@
 #include <boost/beast/core/tcp_stream.hpp>
 #include <boost/beast/ssl/ssl_stream.hpp>
 
-/// TODO: Inherit from 'BasicSSLSession' which already implements functions like
-/// async ssl handshake, and async ssl shutdown. The derived class will simply
-/// call the base class. The design will be static polymorphism, aka. CRTP.
-
 namespace amadeus {
+/// \brief Describes a simple SSLHttpSession which derives from the CRTP
+/// HTTPSession class. Represents a single SSL Http Session on the network.
 class SSLHttpSession
     : public HttpSession<SSLHttpSession>
     , public std::enable_shared_from_this<SSLHttpSession>
@@ -27,9 +25,15 @@ class SSLHttpSession
     void onShutdown(beast::error_code const& _error);
 
   public:
+    /// \brief Create a Secure HTTP Session.
+    /// \param _socket The raw TCP socket from which the Http session is created
+    /// with.
+    /// \param _ctx A reference to the SSL context.
+    /// \param _state The given SharedState.
     SSLHttpSession(tcp::socket&& _socket, ssl::context& _ctx,
                    std::shared_ptr<SharedState> _state);
 
+    /// \brief Destructor.
     ~SSLHttpSession();
 
     /// \brief Return the underlying TCP stream.
