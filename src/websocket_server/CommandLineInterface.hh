@@ -37,6 +37,9 @@ struct CommandLineInterface
     /// The server private key.
     std::string privKey;
 
+    /// \brief Performs the actual command line parsing.
+    /// \param _argc The number of arguments.
+    /// \param _argv An array of arguments.
     void parse(int _argc, char* _argv[]);
 };
 } // namespace amadeus

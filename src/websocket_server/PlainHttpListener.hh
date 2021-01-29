@@ -4,6 +4,7 @@
 #include "websocket_server/Listener.hh"
 
 namespace amadeus {
+/// Alias for a Plain Http Listener.
 using PlainHttpListener = Listener<PlainHttpSession>;
 } // namespace amadeus
 

@@ -3,21 +3,27 @@
 
 namespace amadeus {
 #pragma pack(push, 1)
+/// \brief Defines the HandshakeReason enum which describes the reason for the
+/// HandshakeNAKPacket in detail.
 enum class HandshakeReason : std::uint8_t
 {
-    // StationId was already assigned on the server.
+    /// StationId was already assigned on the server.
     ReasonStationIdAlready = 1 << 0,
-    // StationId is invalid because it could not be found.
+    /// StationId is invalid because it could not be found.
     ReasonStationIdInvalid = 1 << 1,
-    // Wrong UUID.
+    /// Wrong UUID.
     ReasonUUIDInvalid = 1 << 2,
-    // Wrong UUID format.
+    /// Wrong UUID format.
     ReasonUUIDInvalidFormat = 1 << 3,
 };
 namespace out {
+/// \brief Defines the HandshakeNAKPacket which is sent by the server in case
+/// the TCP Client was not successfully authenticated.
 struct HandshakeNAKPacket
 {
+    /// Packet header.
     std::uint8_t header{0x02};
+    /// The reason for the handshake failure.
     HandshakeReason reason;
 };
 #pragma pack(pop)

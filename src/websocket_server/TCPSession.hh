@@ -32,6 +32,7 @@ class TCPSession
     /// The maximum amount of bytes for the output buffer.
     static constexpr auto MaxOutputSize{512U};
 
+    /// An alias for the TCPRequestHandler tied to the current TCPSession.
     using PacketHandlerType = TCPRequestHandler<class TCPSession>;
 
     /// The shared state.
@@ -48,6 +49,9 @@ class TCPSession
     StationId stationId_;
 
     /// \brief CompletionToken for the asynchronous read operation.
+    /// \param _error The error.
+    /// \param _bytesTransferred The number of bytes transferred during the
+    /// asynchronous TCP read.
     void onReadPacketHeader(beast::error_code const& _error,
                             std::size_t _bytesTransferred)
     {
@@ -141,6 +145,8 @@ class TCPSession
 
   public:
     /// \brief Creates a TCPSession.
+    /// \param _ioc A reference to the io_context.
+    /// \param _state The SharedState.
     TCPSession(asio::io_context& _ioc, std::shared_ptr<SharedState> _state)
         : state_(std::move(_state))
         , handler_(_ioc, *this)
@@ -150,7 +156,6 @@ class TCPSession
     /// \brief Leaves the TCPSession.
     ~TCPSession()
     {
-        // derived().disconnect();
         state_->leave<Derived>(stationId_);
         LOG_DEBUG("TCPSession disconnected.\n");
     }
@@ -173,11 +178,13 @@ class TCPSession
         return *state_.get();
     };
 
+    /// \brief Returns the stationId for the current TCP Session.
     StationId const stationId() const noexcept
     {
         return stationId_;
     }
 
+    /// \brief Sets the stationId for the current TCP Session.
     void stationId(StationId _id) noexcept
     {
         stationId_ = _id;
@@ -192,6 +199,13 @@ class TCPSession
     ///     // ...
     /// }
     // clang-format on
+    /// \tparam Packet The Packet to be written to the TCP stream.
+    /// \tparam CompletionHandler The function object to inform the caller about
+    /// the asynchronous operation which is immediately called once the given
+    /// packet was transferred to the remote endpoint.
+    /// \param _packet A const reference to the given packet.
+    /// \param _handler Any valid function object with the function signature
+    /// described above.
     template <typename Packet, typename CompletionHandler>
     void writePacket(Packet const& _packet, CompletionHandler&& _handler)
     {
@@ -246,12 +260,6 @@ class TCPSession
                                       auto&& ec, auto&& bytes_transferred) {
                 self->onReadPacketHeader(ec, bytes_transferred);
             });
-    }
-
-    /// \brief Starts the asynchronous write operation.
-    void doWrite()
-    {
-        throw std::runtime_error("NotImplemented");
     }
 };
 } // namespace amadeus

@@ -8,6 +8,7 @@
 #include <string>
 #include <type_traits>
 
+namespace amadeus {
 /// \brief A read-only (immutable), non-owning view, copyable of a contiguous
 /// amount of data consisting of a pointer and size.
 /// \remarks Make sure an object of this class does NOT exceed the lifetime of
@@ -33,7 +34,6 @@
  *  auto const& y = r->y;
  *
  */
-namespace amadeus {
 template <typename PacketType, typename Type = std::uint8_t>
 class packet_view final
 {

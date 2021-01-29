@@ -4,8 +4,10 @@
 namespace amadeus {
 #pragma pack(push, 1)
 namespace in {
+/// \brief Defines the PongPacket which is received from a TCP Client.
 struct PongPacket
 {
+    /// Packet header.
     std::uint8_t header;
 };
 #pragma pack(pop)

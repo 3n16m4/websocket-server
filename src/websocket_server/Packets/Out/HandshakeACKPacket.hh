@@ -4,8 +4,11 @@
 namespace amadeus {
 #pragma pack(push, 1)
 namespace out {
+/// Defines the HandshakeACKPacket which is sent by the server if the TCP Client
+/// was successfully authenticated.
 struct HandshakeACKPacket
 {
+    /// Packet header.
     std::uint8_t header{0x01};
 };
 #pragma pack(pop)

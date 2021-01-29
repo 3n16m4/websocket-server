@@ -16,33 +16,34 @@
 #include <variant>
 #include <vector>
 
-// TODO: Delete PlainTCPSessions because they are not needed and should not be
-// allowed in the webserver.
-
 namespace amadeus {
-/// \brief This class is responsible for keeping track of all connected
-/// websocket sessions. It provides functions for joining, leaving sessions and
-/// sending messages to all websocket sessions. In essence, it simply holds
-/// server data related to the websocket sessions and is thus shared by every
-/// websocket session.
-
+/// Forward declaration.
 enum class StationId : std::uint8_t;
 
+/// \brief Represents a 'notification' from a TCP connection, whenever a new
+/// weather status update is received.
 struct WeatherStatusNotification
 {
+    /// The unique station id which identifies the TCP connection.
     StationId id;
+    /// The temperature read from the sensor.
     float temperature;
+    /// The humidity read from the sensor.
     float humidity;
+    /// The unix timestamp from when the sensor read the data.
     std::uint32_t time;
 };
 
+/// \brief Represents a simple WebSocketSession Context which is filled in by
+/// the WebSocketSession itself whenever an asynchronous accept operation is
+/// processed. This is done in order to register the callback for the
+/// weather notifications.
 template <typename SessionType>
 struct WebSocketSessionCtx
 {
     /// The callback whenever a new weather response is received from the TCP
     /// Session.
     using NotificationCallback = std::function<void(WeatherStatusNotification)>;
-    // static_assert(std::is_base_of_v<SessionType, WebSocketSession>());
     /// Can either be PlainWebSocketSession or SSLWebSocketSession.
     SessionType* session;
     /// Called each time a new weather response was received from the TCP
@@ -50,10 +51,16 @@ struct WebSocketSessionCtx
     NotificationCallback callback;
 };
 
+/// Forward declaration.
 class PlainWebSocketSession;
 class SSLWebSocketSession;
 class PlainTCPSession;
 class SSLTCPSession;
+/// \brief This class is responsible for keeping track of all connected
+/// websocket sessions. It provides functions for joining, leaving sessions and
+/// sending messages to all websocket sessions. In essence, it simply holds
+/// server data related to the websocket sessions and is thus shared by every
+/// websocket session.
 class SharedState
 {
     using PlainWebSocketSessionCtx = WebSocketSessionCtx<PlainWebSocketSession>;
@@ -125,7 +132,8 @@ class SharedState
     }
 
     /// \brief Returns the callback for the PlainWebSocketSession by a given
-    /// UUID. \param _uuid The specific UUID bound to the PlainWebSocketSession.
+    /// UUID.
+    /// \param _uuid The specific UUID bound to the PlainWebSocketSession.
     /// \remarks Not Thread-Safe. Must be called with a held lock.
     PlainWebSocketSessionCtx::NotificationCallback
     findPlainWebSocketSession(boost::uuids::uuid const& _uuid)
@@ -162,6 +170,8 @@ class SharedState
         return nullptr;
     }
 
+    /// \brief Finds a PlainTCPSession by a given stationId.
+    /// \param _key The unique stationId.
     std::shared_ptr<PlainTCPSession> findPlainStation(StationId _key)
     {
         if (auto const it = plain_tcp_sessions_.find(_key);
@@ -177,6 +187,8 @@ class SharedState
         return nullptr;
     }
 
+    /// \brief Finds an SSLTCPSession by a given stationId.
+    /// \param _key The unique stationId.
     std::shared_ptr<SSLTCPSession> findSSLStation(StationId _key)
     {
         if (auto const it = ssl_tcp_sessions_.find(_key);
@@ -193,14 +205,18 @@ class SharedState
     }
 
   public:
-    using VariantType = std::variant<std::shared_ptr<PlainTCPSession>,
-                                     std::shared_ptr<SSLTCPSession>,
-                                     std::monostate>;
+    /// A variant type for the PlainTCPSession & SSLTCPSession. This is
+    /// necessary for returning multiple pointers to the TCP sessions
+    /// (PlainTCPSession or SSLTCPSession) by a given stationId.
+    using VariantType =
+        std::variant<std::shared_ptr<PlainTCPSession>,
+                     std::shared_ptr<SSLTCPSession>, std::monostate>;
 
     /// \brief Constructor.
     /// \param _docRoot The document resources directory.
     SharedState(std::string _docRoot, JSON const& _config);
 
+    /// \brief Destructor.
     ~SharedState();
 
     /// \brief Returns the document root.
@@ -210,29 +226,33 @@ class SharedState
     JSON const& config() const noexcept;
 
     /// \brief Join a PlainWebSocketSession and insert it into the list.
-    /// \param _session The PlainWebSocketSession pointer.
+    /// \param _uuid The UUID for the PlainWebSocketSession.
+    /// \param _ctx The PlainWebSocketSessionCtx.
     /// \remarks Thread-Safe.
     bool join(boost::uuids::uuid _uuid,
               WebSocketSessionCtx<PlainWebSocketSession> _ctx);
 
     /// \brief Join an SSLWebSocketSession and insert it into the list.
-    /// \param _session The SSLWebSocketSession pointer.
+    /// \param _uuid The UUID for the SSLWebSocketSession.
+    /// \param _ctx The SSLWebSocketSessionCtx.
     /// \remarks Thread-Safe.
     bool join(boost::uuids::uuid _uuid,
               WebSocketSessionCtx<SSLWebSocketSession> _ctx);
 
     /// \brief Join a PlainTCPSession and insert it into the list.
-    /// \param _session The PlainTCPSession pointer.
     /// \param _id The StationId.
+    /// \param _session The PlainTCPSession pointer.
     /// \remarks Thread-Safe.
     bool join(StationId _id, PlainTCPSession* _session);
 
     /// \brief Join a SSLTCPSession and insert it into the list.
-    /// \param _session The SSLTCPSession pointer.
     /// \param _id The StationId.
+    /// \param _session The SSLTCPSession pointer.
     /// \remarks Thread-Safe.
     bool join(StationId _id, SSLTCPSession* _session);
 
+    /// \brief Leaves a PlainWebSocketSession or SSLWebSocketSession by a given
+    /// UUID.
     /// \remarks Thread-Safe.
     template <typename SessionType>
     void leave(boost::uuids::uuid const& _uuid)
@@ -246,6 +266,7 @@ class SharedState
         }
     }
 
+    /// \brief Leaves a PlainTCPSession or SSLTCPSession by a given UUID.
     /// \remarks Thread-Safe.
     template <typename SessionType>
     void leave(StationId _id)
@@ -259,6 +280,10 @@ class SharedState
         }
     }
 
+    /// \brief Finds a WebSocketSession by a given SessionType
+    /// (PlainWebSocketSession or SSLWebSocketSession) and UUID and returns the
+    /// callback function for the weather status notification.
+    /// \param _uuid The given UUID.
     template <typename SessionType>
     std::function<void(WeatherStatusNotification)>
     findWebSocketSession(boost::uuids::uuid const& _uuid)
@@ -273,19 +298,9 @@ class SharedState
         return nullptr;
     }
 
-    /*template <typename SessionType>
-    std::shared_ptr<SessionType> findStation(StationId _key)
-    {
-        std::scoped_lock<std::mutex> lk(mtx_);
-
-        if constexpr (std::is_same_v<SessionType, PlainTCPSession>) {
-            return findPlainStation(_key);
-        } else if constexpr (std::is_same_v<SessionType, SSLTCPSession>) {
-            return findSSLStation(_key);
-        }
-        return nullptr;
-    }*/
-
+    /// \brief Finds a specific PlainTCPSession or SSLTCPSession by a given
+    /// stationId.
+    /// \param _id The stationId.
     VariantType findStation(StationId _id)
     {
         auto sp = findPlainStation(_id);
@@ -298,6 +313,7 @@ class SharedState
         return std::monostate();
     }
 
+    /// \brief Returns all registered station ids as a vector.
     std::vector<StationId> allStationIds()
     {
         std::vector<StationId> ids;
@@ -315,33 +331,6 @@ class SharedState
         }
 
         return ids;
-    }
-
-    /// \brief Broadcast a message to all connected websocket sessions from the
-    /// list.
-    /// \tparam SessionType The SessionType can either be PlainWebSocketSession
-    /// or SSLWebSocketSession.
-    /// \remarks Thread-Safe.
-    template <typename SessionType>
-    void send(std::string&& _message)
-    {
-        // We store the message in a shared_ptr to make sure that the message is
-        // persistent.
-        auto const s = std::make_shared<std::string const>(std::move(_message));
-
-        std::vector<std::weak_ptr<SessionType>> v;
-        {
-            std::scoped_lock<std::mutex> lk(mtx_);
-            copySessions<SessionType>(v);
-        }
-
-        // Try to obtain a shared_ptr from each weak_ptr and send the message to
-        // the session.
-        for (auto const& wp : v) {
-            if (auto sp = wp.lock()) {
-                sp->send(s);
-            }
-        }
     }
 };
 } // namespace amadeus
