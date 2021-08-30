@@ -1,0 +1,12 @@
+[wrap-file]
+directory = magic_enum-0.7.3
+source_url = https://github.com/Neargye/magic_enum/archive/refs/tags/v0.7.3.zip
+source_filename = magic_enum-0.7.3.zip
+source_hash = 764cce907d10923d449f1534e785b2a11b0a719d214410b1993da9f8e19ec418
+
+patch_url = https://github.com/3n16m4/meson-patch-files/blob/master/magic_enum-0.7.3-wrap.zip?raw=true
+patch_filename = magic_enum-0.7.3-1-wrap.zip
+patch_hash = 4967caf211284ad62e426c066208fc68ee9e3b4f21f20d1db186b58b8c597a22
+
+[provide]
+magic_enum = magic_enum_dep

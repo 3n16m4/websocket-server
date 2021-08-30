@@ -46,6 +46,8 @@ class WebSocketSession
     boost::uuids::uuid uuid_;
     /// The send buffer
     std::string outBuffer_;
+    /// Out buffer queue
+    std::vector<std::string> queue_;
 
     /// \brief Helper function to access the derived class.
     Derived& derived()
@@ -262,6 +264,14 @@ class WebSocketSession
     template <typename CompletionHandler>
     void writeRequest(JSON _request, CompletionHandler&& _handler)
     {
+        // Always add to the queue
+        queue_.push_back(_request.dump());
+
+        // Are we already writing?
+        if (queue_.size() > 1)
+            return;
+
+        // We are not currently writing, so end this immediately
         LOG_INFO("JSON RESPONSE FOR FRONTEND: {}\n", _request.dump());
         outBuffer_ = _request.dump();
 
@@ -272,17 +282,40 @@ class WebSocketSession
         fmt::print("\n");
 
         auto& ws = derived().stream();
-        ws.async_write(asio::buffer(outBuffer_.data(), outBuffer_.size()),
+        ws.async_write(asio::buffer(queue_.front()),
                        [self = derived().shared_from_this(),
                         _handler = std::move(_handler)](
                            auto&& error, auto&& bytes_transferred) {
-                           if (error) {
-                               LOG_ERROR("WS write error: {}\n",
-                                         error.message());
-                               return;
-                           }
-                           _handler(bytes_transferred);
+                           self->onWrite(error, bytes_transferred,
+                                         std::move(_handler));
                        });
+    }
+
+    template <typename CompletionHandler>
+    void onWrite(beast::error_code const& _ec, std::size_t _bytes_transferred,
+                 CompletionHandler&& _handler)
+    {
+        // Handle the error, if any
+        if (_ec) {
+            LOG_ERROR("WS write error: {}\n", _ec.message());
+            return;
+        }
+        // Remove the string from the queue
+        queue_.erase(std::begin(queue_));
+
+        // Send the next request if any
+        if (!queue_.empty()) {
+            auto& ws = derived().stream();
+            ws.async_write(asio::buffer(queue_.front()),
+                           [self = derived().shared_from_this(),
+                            _handler = std::move(_handler)](
+                               auto&& error, auto&& bytes_transferred) {
+                               self->onWrite(error, bytes_transferred,
+                                             std::move(_handler));
+                           });
+        }
+
+        _handler(_bytes_transferred);
     }
 
     /// \brief Start the asynchronous operation.

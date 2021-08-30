@@ -4,7 +4,7 @@ const WEATHER_RESPONSE = 0;
 const stationNames = {};
 const weatherData = {};
 
-const host = "wss://weather-station.cloudns.asia:8081";
+const host = "ws://127.0.0.1:8080";
 var ws = new WebSocket(host);
 
 window.addEventListener('beforeunload', (event) => {
